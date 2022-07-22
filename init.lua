@@ -4,15 +4,18 @@ function _init()
     _update=update_title
     _draw=draw_title
 
+    --496,50 start
+
     p={
         sp=1,
-        x=50,
-        y=496,
+        x=50+164,
+        y=496-400,
         w=8,
         h=8,
         flp=false,
         dx=0,
         dy=0,
+        max_walk_dx=1,
         max_dx=2,
         max_dy=6,
         max_slide=4,
@@ -55,10 +58,9 @@ function _init()
     air_time=0
     jump_counter=0
     
-    --496,50 start
     --camera
     cam_x=0
-    cam_y=385
+    cam_y=0
 
     map_start=0
     map_end=1024

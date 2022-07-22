@@ -58,12 +58,7 @@ function p_update()
 
 --check collision left/right
         if p.dx<0 then
-                if not slide_left(p)
-                and not slide_right(p) then		
-                        p.dx=limit_speed(p.dx,p.max_dx)
-                else
-                        p.dx=limit_speed(p.dx,p.max_slide)
-                end
+                handle_speed()
                 
                 if collide_map(p,"left",0) then
                         if p.grounded then
@@ -78,12 +73,7 @@ function p_update()
                 end 
                 stop_running()           
         elseif p.dx>0 then
-                if not slide_left(p)
-                and not slide_right(p) then		
-                        p.dx=limit_speed(p.dx,p.max_dx)
-                else
-                        p.dx=limit_speed(p.dx,p.max_slide)
-                end
+                handle_speed()
                 
                 if collide_map(p,"right",0) then
                         if p.grounded then
@@ -111,5 +101,18 @@ end
 function stop_running()
         if p.grounded and not p.running then
                 p.dx=0
+        end
+end
+
+function handle_speed()
+        if not slide_left(p)
+        and not slide_right(p) then
+                if  p.running then
+                        p.dx=limit_speed(p.dx,p.max_walk_dx)
+                else	
+                        p.dx=limit_speed(p.dx,p.max_dx)
+                end
+        else
+                p.dx=limit_speed(p.dx,p.max_slide)
         end
 end
