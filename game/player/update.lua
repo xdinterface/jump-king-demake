@@ -23,8 +23,8 @@ function p_update()
                         p.landing=true
                 end
 
-                if not slide_left(p)
-                        and not slide_right(p) then		
+                if not collide_map(p, "slide", 1)
+                and not collide_map(p, "slide", 2) then		
                         p.dy=limit_speed(p.dy,p.max_dy)
                 else
                         p.dy=limit_speed(p.dy,p.max_slide)
@@ -32,8 +32,8 @@ function p_update()
 
                 if collide_map(p,"down",0) then
                         p.y=p.y-(((p.y+p.h+1)%8)-1)
-                        if not slide_left(p)
-                        and not slide_right(p) then
+                        if not collide_map(p, "slide", 1)
+                        and not collide_map(p, "slide", 2) then
                                 if p.smash then
                                         sfx(-1,1)
                                         sfx(3,1)
@@ -51,7 +51,9 @@ function p_update()
                 end
         elseif p.dy<0 then
                 p.jumping=true
-                if collide_map(p,"up",0) then
+                if collide_map(p,"up",0)
+                or collide_map(p,"up",3)
+                or collide_map(p,"up",4) then
                         p.dy=0
                 end		
         end
@@ -105,8 +107,8 @@ function stop_running()
 end
 
 function handle_speed()
-        if not slide_left(p)
-        and not slide_right(p) then
+        if not collide_map(p, "slide", 1)
+        and not collide_map(p, "slide", 2) then
                 if  p.running then
                         p.dx=limit_speed(p.dx,p.max_walk_dx)
                 else	

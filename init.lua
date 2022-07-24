@@ -18,7 +18,7 @@ function _init()
         max_walk_dx=1,
         max_dx=2,
         max_dy=6,
-        max_slide=4,
+        max_slide=3.5,
         acc=1.4,
         jump_acc=2,
         boost=0,
@@ -47,8 +47,8 @@ function _init()
     seconds=0
     minutes=0
     
-    menu_music=true
-    game_music=true
+    menu_music=false
+    game_music=false
     show_time=true
 
     gravity=0.24

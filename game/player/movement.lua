@@ -63,27 +63,16 @@ function p_movement()
     --move to side in air
     if not p.grounded
     and p.dir
-    and not slide_left(p)
-    and not slide_right(p) then
+    and not collide_map(p, "slide", 1)
+    and not collide_map(p, "slide", 2) then
         if p.hit
-        or p.lying or p.running then
+        or p.lying
+        or p.running then
             if not p.flp then
                 p.dx=p.acc
             else
                 p.dx=-p.acc
             end
-        elseif slide_right(p) then
-            p.flp=false
-            p.dx=p.dx+p.dy
-            p.lying=true
-            p.smash=true
-            p.landing=false
-        elseif slide_left(p) then
-            p.flp=true
-            p.dx=p.dx-p.dy
-            p.lying=true
-            p.smash=true
-            p.landing=false
         else
             if not p.flp then
                 p.dx=p.dx+p.jump_acc
@@ -91,6 +80,18 @@ function p_movement()
                 p.dx=p.dx-p.jump_acc
             end
         end
+    elseif collide_map(p, "slide", 1) then
+        p.flp=true
+        p.dx=-p.dy
+        p.lying=true
+        p.smash=true
+        p.landing=false
+    elseif collide_map(p, "slide", 2) then
+        p.flp=false
+        p.dx=p.dy
+        p.lying=true
+        p.smash=true
+        p.landing=false
     end
 
     function charge_jump()
