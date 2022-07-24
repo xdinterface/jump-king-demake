@@ -5,7 +5,7 @@ function p_movement()
         p.flp=true
         p.dir=true
         if not p.crouching then
-                p.dx=p.dx-p.acc
+                p.dx=p.dx-p.walk_acc
                 p.lying=false
                 p.running=true
         elseif p.crouching then
@@ -19,7 +19,7 @@ function p_movement()
         p.flp=false
         p.dir=true
         if not p.crouching then
-                p.dx=p.dx+p.acc
+                p.dx=p.dx+p.walk_acc
                 p.lying=false
                 p.running=true
         elseif p.crouching then
@@ -66,12 +66,17 @@ function p_movement()
     and not collide_map(p, "slide", 1)
     and not collide_map(p, "slide", 2) then
         if p.hit
-        or p.lying
-        or p.running then
+        or p.lying then
             if not p.flp then
                 p.dx=p.acc
             else
                 p.dx=-p.acc
+            end
+        elseif p.running then
+            if not p.flp then
+                p.dx=p.walk_acc*2
+            else
+                p.dx=-p.walk_acc*2
             end
         else
             if not p.flp then

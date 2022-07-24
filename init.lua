@@ -20,6 +20,7 @@ function _init()
         max_dy=6,
         max_slide=3.5,
         acc=1.4,
+        walk_acc=0.4,
         jump_acc=2,
         boost=0,
         boost_max=4.8,
