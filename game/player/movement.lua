@@ -5,7 +5,7 @@ function p_movement()
         p.flp=true
         p.dir=true
         if not p.crouching then
-                p.dx=p.dx-p.acc
+                p.dx=p.dx-p.walk_acc
                 p.lying=false
                 p.running=true
         elseif p.crouching then
@@ -19,7 +19,7 @@ function p_movement()
         p.flp=false
         p.dir=true
         if not p.crouching then
-                p.dx=p.dx+p.acc
+                p.dx=p.dx+p.walk_acc
                 p.lying=false
                 p.running=true
         elseif p.crouching then
@@ -30,6 +30,7 @@ function p_movement()
     --stop running
     if not btn(⬅️) and not btn(➡️) and p.grounded then
         p.running = false
+        p.dir = false
     end
 
     --crouch
@@ -63,27 +64,21 @@ function p_movement()
     --move to side in air
     if not p.grounded
     and p.dir
-    and not slide_left(p)
-    and not slide_right(p) then
+    and not collide_map(p, "slide", 1)
+    and not collide_map(p, "slide", 2) then
         if p.hit
-        or p.lying or p.running then
+        or p.lying then
             if not p.flp then
                 p.dx=p.acc
             else
                 p.dx=-p.acc
             end
-        elseif slide_right(p) then
-            p.flp=false
-            p.dx=p.dx+p.dy
-            p.lying=true
-            p.smash=true
-            p.landing=false
-        elseif slide_left(p) then
-            p.flp=true
-            p.dx=p.dx-p.dy
-            p.lying=true
-            p.smash=true
-            p.landing=false
+        elseif p.running then
+            if not p.flp then
+                p.dx=p.walk_acc*2
+            else
+                p.dx=-p.walk_acc*2
+            end
         else
             if not p.flp then
                 p.dx=p.dx+p.jump_acc
@@ -91,6 +86,18 @@ function p_movement()
                 p.dx=p.dx-p.jump_acc
             end
         end
+    elseif collide_map(p, "slide", 1) then
+        p.flp=true
+        p.dx=-p.dy
+        p.lying=true
+        p.smash=true
+        p.landing=false
+    elseif collide_map(p, "slide", 2) then
+        p.flp=false
+        p.dx=p.dy
+        p.lying=true
+        p.smash=true
+        p.landing=false
     end
 
     function charge_jump()
