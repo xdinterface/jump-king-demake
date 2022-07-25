@@ -24,40 +24,25 @@ function collide_map(obj, aim, flag)
     elseif aim == "up" then
         x1 = x + 1
         x2 = x + w - 2
-        y1 = y - 2
-        y2 = y - 2
+        if flag == 0 then
+            y1 = y - 2
+            y2 = y - 2
+        elseif flag == 3 or flag == 4 then
+            y1 = y + 1
+            y2 = y + h
+        end
 
     elseif aim == "down" then
         x1 = x + 1
         x2 = x + w - 2
-        y1 = y + h
-        y2 = y + h
+        y1 = y + h + 1
+        y2 = y + h + 1
 
     elseif aim == "slide" then
-        if flag == 1 then
-            x1 = x + 1
-            x2 = x + w
-            y1 = y + 1
-            y2 = y + h
-
-        elseif flag == 2 then
-            x1 = x
-            x2 = x + w - 1
-            y1 = y - 1
-            y2 = y + h
-
-        elseif flag == 3 then
-            x1 = x + 1
-            x2 = x + w
-            y1 = y
-            y2 = y + h - 1
-
-        elseif flag == 4 then
-            x1 = x
-            x2 = x + w - 1
-            y1 = y
-            y2 = y + h - 1
-        end
+        x1 = x + 1
+        x2 = x + w - 2
+        y1 = y + 1
+        y2 = y + h - 1
     end
 
     -- pixels to tiles
@@ -67,59 +52,29 @@ function collide_map(obj, aim, flag)
 	y2=y2/8
 
     if flag == 0 then
-        if fget(mget(x1, y1), flag)
+        return fget(mget(x1, y1), flag)
         or fget(mget(x1, y2), flag)
         or fget(mget(x2, y1), flag)
         or fget(mget(x2, y2), flag)
-        then
-            return true
-        else
-            return false
-        end
+
     elseif flag == 1 then
-        if fget(mget(x1, y1), flag)
+        return fget(mget(x1, y1), flag)
         or fget(mget(x1, y2), flag)
-        or fget(mget(x2, y1), flag) then
-            return true
-        else
-            return false
-        end
+        or fget(mget(x2, y1), flag)
+
     elseif flag == 2 then
-        if fget(mget(x1, y1), flag)
+        return fget(mget(x1, y1), flag)
+        or fget(mget(x2, y1), flag)
+        or fget(mget(x2, y2), flag)
+
+    elseif flag == 3 then
+        return fget(mget(x1, y1), flag)
         or fget(mget(x1, y2), flag)
         or fget(mget(x2, y2), flag)
-        then
-            return true
-        else
-            return false
-        end
-    elseif flag == 3 then
-        if fget(mget(x1, y1), flag) or fget(mget(x2, y1), flag) or fget(mget(x2, y2), flag) then
-            return true
-        else
-            return false
-        end
+
     elseif flag == 4 then
-        if fget(mget(x2, y1), flag) or fget(mget(x1, y2), flag) or fget(mget(x2, y2), flag) then
-            return true
-        else
-            return false
-        end
-    end
-end
-
-function slide_left(p)
-    if collide_map(p, "slide", 1) then
-        return true
-    else
-        return false
-    end
-end
-
-function slide_right(p)
-    if collide_map(p, "slide", 2) then
-        return true
-    else
-        return false
+        return fget(mget(x1, y2), flag)
+        or fget(mget(x2, y1), flag)
+        or fget(mget(x2, y2), flag)
     end
 end
