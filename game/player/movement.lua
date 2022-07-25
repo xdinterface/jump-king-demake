@@ -30,6 +30,7 @@ function p_movement()
     --stop running
     if not btn(⬅️) and not btn(➡️) and p.grounded then
         p.running = false
+        p.dir = false
     end
 
     --crouch
