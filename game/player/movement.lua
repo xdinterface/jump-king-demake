@@ -75,9 +75,9 @@ function p_movement()
             end
         elseif p.running then
             if not p.flp then
-                p.dx=p.walk_acc*2
+                p.dx=p.acc
             else
-                p.dx=-p.walk_acc*2
+                p.dx=-p.acc
             end
         else
             if not p.flp then
