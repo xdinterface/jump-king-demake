@@ -8,7 +8,7 @@ function _init()
 
     p={
         sp=1,
-        x=50,
+        x=60,
         y=496,
         w=8,
         h=8,
@@ -34,7 +34,8 @@ function _init()
         landing=false,
         smash=false,
         dir=false,
-        hit=false
+        hit=false,
+        lock_jump=false
     }
     
     menu_pos=1

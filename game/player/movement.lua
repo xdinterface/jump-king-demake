@@ -35,7 +35,8 @@ function p_movement()
 
     --crouch
     if btn(❎)
-    and p.grounded then
+    and p.grounded
+    and not p.lock_jump then
         p.crouching=true
         p.lying=false
         charge_jump()
@@ -44,6 +45,16 @@ function p_movement()
         and not btn(➡️) then
                 p.dir=false
         end
+        if btn(🅾️) then
+            p.crouching=false
+            p.boost=0
+            p.lock_jump=true
+        end
+    end
+
+    if btnp(❎)
+    and p.grounded then
+        p.lock_jump = false
     end
 
     --jump
