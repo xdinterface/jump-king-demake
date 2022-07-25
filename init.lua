@@ -8,7 +8,7 @@ function _init()
 
     p={
         sp=1,
-        x=60,
+        x=50,
         y=496,
         w=8,
         h=8,
