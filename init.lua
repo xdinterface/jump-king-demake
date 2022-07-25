@@ -48,8 +48,8 @@ function _init()
     seconds=0
     minutes=0
     
-    menu_music=false
-    game_music=false
+    menu_music=true
+    game_music=true
     show_time=true
 
     gravity=0.24
