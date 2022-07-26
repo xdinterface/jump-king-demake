@@ -1,7 +1,10 @@
 function draw_game()
     cls()
     map(0,0)
+    palt(0,false)
+    palt(14,true)
     spr(p.sp,p.x,p.y,1,1,p.flp)
+    palt()
     
     if show_time then
             draw_time()
