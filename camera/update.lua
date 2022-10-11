@@ -40,6 +40,20 @@ function camera_update()
 			elseif p.y< -1 then
 					p_lvl_up()
 			end
+	elseif 384<p.x and p.x<512 then
+			if 512<p.y then
+					p_lvl_down()
+			elseif 384<p.y and p.y<512 then
+					lvl(13)
+			elseif 256<p.y and p.y<384 then
+					lvl(14)
+			elseif 128<p.y and p.y<256 then
+					lvl(15)
+			elseif -1<p.y and p.y<128 then
+					lvl(16)
+			elseif p.y< -1 then
+					p_lvl_up()
+			end
 	end
 end
 

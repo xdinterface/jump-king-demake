@@ -52,6 +52,9 @@ function _init()
     menu_music=true
     game_music=true
     show_time=true
+    max_menu=3
+    init_lvl=1
+    s=0
 
     gravity=0.24
     friction=0.2

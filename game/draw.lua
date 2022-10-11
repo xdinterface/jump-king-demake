@@ -12,7 +12,8 @@ function draw_game()
     --draw_rain()
 
     --test--
-    --print(tostr(p.dy),p.x,p.y-10,7)
+    print('x: '..tostr(p.x),p.x,p.y+8,7)
+    print('y: '..tostr(p.y),p.x,p.y-10,7)
     --print("left:"..(p.hit and 'true' or 'false'),p.x,p.y+10,7)
 end
 

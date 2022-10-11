@@ -16,6 +16,7 @@ __lua__
 #include ./menu/draw.lua
 #include ./menu/update.lua
 #include ./menu/effects.lua
+#include ./menu/level.lua
 #include ./music/update.lua
 #include ./title/draw.lua
 #include ./title/update.lua
