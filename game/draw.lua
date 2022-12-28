@@ -1,16 +1,21 @@
 function draw_game()
     cls()
-    map(0,0)
+    draw_clouds()
     palt(0,false)
+    draw_rectangles()
+    palt()
+    map(0,0)
     palt(14,true)
+    palt(0,false)
     spr(p.sp,p.x,p.y,1,1,p.flp)
+    
     palt()
     
     if show_time then
             draw_time()
     end
     --draw_rain()
-
+    
     --test--
     if (debug==true) then
         print('x: '..tostr(p.x),cam_x,cam_y+8,7)

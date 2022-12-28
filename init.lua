@@ -41,11 +41,11 @@ function _init()
 
     clouds = {}
 
-    for i=0,16 do
+    for i=0,10 do
         add(clouds,{
             x=rnd(128),
             y=rnd(128),
-            spd=1+rnd(4),
+            spd=1+rnd(0.5),
             w=32+rnd(32)
         })
     end
