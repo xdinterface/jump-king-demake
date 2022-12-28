@@ -12,9 +12,11 @@ function draw_game()
     --draw_rain()
 
     --test--
-    print('x: '..tostr(p.x),p.x,p.y+8,7)
-    print('y: '..tostr(p.y),p.x,p.y-10,7)
+    if (debug==true) then
+        print('x: '..tostr(p.x),cam_x,cam_y+8,7)
+        print('y: '..tostr(p.y),cam_x,cam_y+14,7)
     --print("left:"..(p.hit and 'true' or 'false'),p.x,p.y+10,7)
+    end
 end
 
 function draw_time()

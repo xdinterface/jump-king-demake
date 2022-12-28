@@ -12,6 +12,7 @@ function update_game()
     p_animate()
     update_game_music()
     camera_update()
+    draw_clouds()
     
     --update_rain()
 end

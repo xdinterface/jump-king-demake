@@ -115,7 +115,7 @@ function p_movement()
         if time()-air_time > .06 then
             air_time = time()
             if p.boost < p.boost_max then
-                p.boost=p.boost+0.5
+                p.boost=p.boost+0.4
             end
         end
     

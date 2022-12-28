@@ -47,5 +47,41 @@ function set_lvl()
 	elseif init_lvl==16 then
 		p.x=441
 		p.y=88
+	elseif init_lvl==17 then
+		p.x=543
+		p.y=496
+	elseif init_lvl==18 then
+		p.x=587
+		p.y=352
+	elseif init_lvl==19 then
+		p.x=548
+		p.y=232
+	elseif init_lvl==20 then
+		p.x=554
+		p.y=112
+	elseif init_lvl==21 then
+		p.x=554
+		p.y=112
+	elseif init_lvl==22 then
+		p.x=554
+		p.y=112
+	elseif init_lvl==23 then
+		p.x=554
+		p.y=112
+	elseif init_lvl==24 then
+		p.x=554
+		p.y=112
+	elseif init_lvl==25 then
+		p.x=554
+		p.y=112
+	elseif init_lvl==26 then
+		p.x=554
+		p.y=112
+	elseif init_lvl==27 then
+		p.x=554
+		p.y=112
+	elseif init_lvl==28 then
+		p.x=554
+		p.y=112
 	end
 end

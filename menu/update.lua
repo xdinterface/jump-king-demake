@@ -1,15 +1,13 @@
 function update_menu()
     update_menu_music()
     blink()
-
-    if btn(🅾️) then
-        if s<6 then
-                s=s+1
-        else
-                max_menu=4
-        end
-    end
     
+    if(debug) then
+        max_menu=4
+    else 
+        max_menu=3
+    end
+
     if btnp(⬇️) then
             if menu_pos<max_menu then
                     menu_pos=menu_pos+1
@@ -42,10 +40,10 @@ function update_menu()
             or btnp(❎) then
                     show_time=not show_time
             end
-    elseif max_menu==4 and menu_pos==4 then
+    elseif debug and menu_pos==4 then
             if (btnp(➡️)
             or btnp(❎)) then
-                if init_lvl<15 then
+                if init_lvl<28 then
                         init_lvl=init_lvl+1
                         set_lvl()
                 else
@@ -57,7 +55,7 @@ function update_menu()
                         init_lvl=init_lvl-1
                         set_lvl()
                     else
-                        init_lvl=15
+                        init_lvl=28
                         set_lvl()
                 end
             end
