@@ -110,7 +110,11 @@ function handle_speed()
         if not collide_map(p, "slide", 1)
         and not collide_map(p, "slide", 2) then
                 if  p.running then
-                        p.dx=limit_speed(p.dx,p.max_walk_dx)
+                        if (btn(🅾️)) then
+                                p.dx=limit_speed(p.dx,p.max_walk_dx/2)
+                        else
+                                p.dx=limit_speed(p.dx,p.max_walk_dx)
+                        end
                 else	
                         p.dx=limit_speed(p.dx,p.max_dx)
                 end

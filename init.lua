@@ -5,6 +5,7 @@ function _init()
     _draw=draw_title
 
     --496,50 start
+    debug=false
 
     p={
         sp=1,
@@ -37,7 +38,18 @@ function _init()
         hit=false,
         lock_jump=false
     }
-    
+
+    clouds = {}
+
+    for i=0,10 do
+        add(clouds,{
+            x=rnd(128),
+            y=rnd(128),
+            spd=1+rnd(0.5),
+            w=32+rnd(32)
+        })
+    end
+
     menu_pos=1
     blink_c=7
     blink_c1=7
@@ -52,6 +64,9 @@ function _init()
     menu_music=true
     game_music=true
     show_time=true
+    max_menu=0
+    init_lvl=1
+    s=0
 
     gravity=0.24
     friction=0.2
