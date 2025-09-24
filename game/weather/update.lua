@@ -64,9 +64,8 @@ function update_snow_wind()
             end
         end
     else
-        --no wind for snow-only levels
-        wind_strength = 0
-        wind_direction = 0
+        --no wind for snow-only levels - but keep global wind cycle running
+        --wind effects simply won't be applied in these levels
     end
     
     --update snow particles (using foreach like clouds)
@@ -75,7 +74,9 @@ function update_snow_wind()
         flake.y = flake.y + flake.spd
         
         --wind effect (horizontal movement same speed as falling)
-        flake.x = flake.x + wind_direction * wind_strength * flake.spd * weather_config.snow.wind_factor
+        if has_snow_wind then
+            flake.x = flake.x + wind_direction * wind_strength * flake.spd * weather_config.snow.wind_factor
+        end
         
         --wrap around screen (like clouds do)
         if flake.y > game_config.screen_size then

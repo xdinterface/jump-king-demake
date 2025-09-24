@@ -33,7 +33,7 @@ function _init()
         wind = {
             max_speed = 1.5,
             player_force = 0.1,
-            ground_force = 0.2,
+            ground_force = 0.1,
             ground_max_speed = 2.0,
             ramp_time = 0.2,
             blow_time = 5
@@ -89,7 +89,9 @@ function _init()
         wind_timer=0,
         wind_ramp=0,
         ground_wind_timer=0,
-        ground_wind_ramp=0
+        ground_wind_ramp=0,
+        jump_canceled=false,
+        jump_btn_held=false
     }
 
     clouds = {}

@@ -49,10 +49,17 @@ function p_movement()
         p.dir = false
     end
 
+    --detect jump button release (was pressed last frame but not this frame)
+    if p.jump_btn_held and not btn(🅾️) then
+        p.jump_canceled = false  --reset cancel flag on button release
+    end
+    p.jump_btn_held = btn(🅾️)  --store current button state for next frame
+
     --crouch
     if btn(🅾️)
     and p.grounded
-    and not p.lock_jump then
+    and not p.lock_jump
+    and not p.jump_canceled then
         p.crouching=true
         p.lying=false
 
@@ -75,7 +82,7 @@ function p_movement()
         if btn(❎) then
             p.crouching=false
             p.boost=0
-            p.lock_jump=true
+            p.jump_canceled=true  --cancel jump, disable until button release
         end
     end
 
@@ -123,8 +130,8 @@ function p_movement()
         end
     end
 
-    --apply wind force when airborne
-    if not p.grounded and wind_force != 0 then
+    --apply wind force when airborne (blocked by deep snow)
+    if not p.grounded and wind_force != 0 and not in_deep_snow(p) then
         p.dx = p.dx + wind_force
     end
 

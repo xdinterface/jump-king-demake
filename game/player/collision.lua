@@ -64,76 +64,37 @@ function collide_map(obj, aim, flag)
 end
 
 function in_deep_snow(obj)
-	--check if player's feet (bottom edge) are touching flag 5 (snow pile)
-	local x = obj.x
-	local y = obj.y + obj.h  --bottom edge of player
-	local w = obj.w
-
-	--convert to tile coordinates
-	local x1 = (x + 1) / 8
-	local x2 = (x + w - 2) / 8
-	local y_check = y / 8
-
-	--check if bottom edge is touching flag 5 tiles
-	return fget(mget(x1, y_check), 5) or fget(mget(x2, y_check), 5)
-end
-
-function collide_diagonal_wall(obj, aim)
-	--check if diagonal tiles should act as solid walls from this direction
+	--check if any part of player hitbox intersects with bottom 2px of flag 5 tiles
 	local x = obj.x
 	local y = obj.y
 	local w = obj.w
 	local h = obj.h
 
-	local x1, x2, y1, y2 = 0, 0, 0, 0
+	--get all tiles that player hitbox could overlap
+	local tile_x1 = flr(x / 8)
+	local tile_x2 = flr((x + w - 1) / 8)
+	local tile_y1 = flr(y / 8)
+	local tile_y2 = flr((y + h - 1) / 8)
 
-	if aim == "left" then
-		x1 = x - 1
-		x2 = x - 1
-		y1 = y + 2
-		y2 = y + h - 1
-	elseif aim == "right" then
-		x1 = x + w
-		x2 = x + w
-		y1 = y + 2
-		y2 = y + h - 1
-	elseif aim == "up" then
-		x1 = x + 1
-		x2 = x + w - 2
-		y1 = y - 2
-		y2 = y - 2
-	elseif aim == "down" then
-		x1 = x + 1
-		x2 = x + w - 2
-		y1 = y + h + 1
-		y2 = y + h + 1
-	end
+	for ty = tile_y1, tile_y2 do
+		for tx = tile_x1, tile_x2 do
+			local sprite_id = mget(tx, ty)
+			if fget(sprite_id, 5) then
+				--calculate deep snow area (bottom 2px of this tile)
+				local tile_top = ty * 8
+				local snow_top = tile_top + 6  --bottom 2px start at pixel 6
+				local snow_bottom = tile_top + 8  --tile bottom
+				local tile_left = tx * 8
+				local tile_right = tile_left + 8
 
-	-- pixels to tiles
-	x1 = x1 / 8
-	x2 = x2 / 8
-	y1 = y1 / 8
-	y2 = y2 / 8
-
-	--check if hitting diagonal tiles from solid side
-	for tx = flr(min(x1, x2)), flr(max(x1, x2)) do
-		for ty = flr(min(y1, y2)), flr(max(y1, y2)) do
-			if fget(mget(tx, ty), 1) then
-				--flag 1: solid from top-left and bottom-right
-				if (aim == "right" and obj.x % 8 < 4) or (aim == "left" and obj.x % 8 > 4) or
-				   (aim == "down" and obj.y % 8 < 4) or (aim == "up" and obj.y % 8 > 4) then
-					return true
-				end
-			elseif fget(mget(tx, ty), 2) then
-				--flag 2: solid from top-right and bottom-left
-				if (aim == "left" and obj.x % 8 < 4) or (aim == "right" and obj.x % 8 > 4) or
-				   (aim == "down" and obj.y % 8 > 4) or (aim == "up" and obj.y % 8 < 4) then
+				--check if player hitbox intersects with deep snow area
+				if x < tile_right and x + w > tile_left and y < snow_bottom and y + h > snow_top then
 					return true
 				end
 			end
 		end
 	end
-
 	return false
 end
+
 

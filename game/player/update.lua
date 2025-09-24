@@ -172,7 +172,7 @@ function handle_speed(slide1, slide2)
 
         if not slide1 and not slide2 then
                 if  p.running then
-                        if (btn(🅾️)) then
+                        if (btn(❎)) then
                                 p.dx=limit_speed(p.dx,p.max_walk_dx/2)
                         else
                                 p.dx=limit_speed(p.dx,p.max_walk_dx)
@@ -196,5 +196,18 @@ function calculate_ground_wind_force()
         if not has_wind_this_level or not p.grounded or in_deep_snow(p) then
                 return 0
         end
+
+        --check if player is against a wall in the direction of wind
+        local blocked_by_wall = false
+        if wind_direction < 0 and collide_map(p, "left", 0) then
+                blocked_by_wall = true  --wind blowing left but wall on left
+        elseif wind_direction > 0 and collide_map(p, "right", 0) then
+                blocked_by_wall = true  --wind blowing right but wall on right
+        end
+
+        if blocked_by_wall then
+                return 0
+        end
+
         return wind_direction * wind_strength * p.ground_wind_ramp * weather_config.wind.ground_force
 end
