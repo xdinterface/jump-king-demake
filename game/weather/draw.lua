@@ -1,10 +1,45 @@
 function draw_clouds()
+    --don't draw clouds during snow levels (snow-only or snow+wind)
+    local has_snow = false
+
+    for i=1,#snow_only_levels do
+        if snow_only_levels[i] == current_lvl then
+            has_snow = true
+            break
+        end
+    end
+
+    if not has_snow then
+        for i=1,#snow_wind_levels do
+            if snow_wind_levels[i] == current_lvl then
+                has_snow = true
+                break
+            end
+        end
+    end
+
+    if has_snow then return end
+    
     foreach(clouds, function(c)
         c.x += c.spd
-        rectfill(c.x+cam_x,c.y+cam_y,c.x+c.w+cam_x,c.y+cam_y+4+(1-c.w/64)*12,1)
-        if c.x > 128 then
+
+        --draw cloud with multiple overlapping circles for more natural shape
+        local cloud_x = c.x + cam_x
+        local cloud_y = c.y + cam_y
+        local cloud_w = c.w
+        local cloud_h = 8 + (1 - c.w/64) * 8
+
+        --main cloud body (base rectangle)
+        rectfill(cloud_x + cloud_w * 0.2, cloud_y + cloud_h * 0.4, cloud_x + cloud_w * 0.8, cloud_y + cloud_h, 1)
+
+        --cloud puffs (overlapping circles using circfill)
+        circfill(cloud_x + cloud_w * 0.3, cloud_y + cloud_h * 0.6, cloud_h * 0.4, 1)
+        circfill(cloud_x + cloud_w * 0.5, cloud_y + cloud_h * 0.3, cloud_h * 0.5, 1)
+        circfill(cloud_x + cloud_w * 0.7, cloud_y + cloud_h * 0.6, cloud_h * 0.4, 1)
+
+        if c.x > game_config.screen_size then
             c.x = -c.w
-            c.y=rnd(128-8)
+            c.y = rnd(game_config.screen_size - 16)
         end
     end)
 end
@@ -21,4 +56,38 @@ function draw_rain()
             c.x = rnd(128)   
         end
     end)
+end
+
+function draw_snow()
+    --check if current level has snow (snow-only or snow+wind)
+    local has_snow = false
+
+    for i=1,#snow_only_levels do
+        if snow_only_levels[i] == current_lvl then
+            has_snow = true
+            break
+        end
+    end
+
+    if not has_snow then
+        for i=1,#snow_wind_levels do
+            if snow_wind_levels[i] == current_lvl then
+                has_snow = true
+                break
+            end
+        end
+    end
+
+    if not has_snow then return end
+    
+    --draw snowflakes (using foreach like clouds)
+    local drawn_count = 0
+    foreach(snow, function(flake)
+        --draw white snowflake with camera offset (like clouds)
+        pset(flake.x + cam_x, flake.y + cam_y, 7)
+        drawn_count = drawn_count + 1
+    end)
+    
+    --debug: snow count moved to main debug system
+    snow_drawn_count = drawn_count
 end

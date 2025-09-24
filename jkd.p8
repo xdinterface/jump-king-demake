@@ -12,6 +12,7 @@ __lua__
 #include ./game/weather/draw.lua
 #include ./game/weather/update.lua
 #include ./game/elements/rectangles.lua
+#include ./game/background/draw.lua
 #include ./game/draw.lua
 #include ./game/update.lua
 #include ./menu/draw.lua

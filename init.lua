@@ -5,7 +5,55 @@ function _init()
     _draw=draw_title
 
     --496,50 start
-    debug=false
+    debug = true
+    debug_coords = false
+    debug_level = true
+    debug_grounded = true
+    debug_wind = true
+    debug_snow = true
+    debug_world = false
+    
+    --configuration objects--
+    physics_config = {
+        gravity = 0.24,
+        friction = 0.2,
+        friction_ice = 0.6,
+        charge_rate = 0.06,
+        anim_rate = 0.1,
+        bounce_factor = 0.7
+    }
+    
+    weather_config = {
+        snow = {
+            count = 60,
+            speed_min = 0.5,
+            speed_max = 1.0,
+            wind_factor = 4.0
+        },
+        wind = {
+            max_speed = 1.5,
+            player_force = 0.1,
+            ground_force = 0.2,
+            ground_max_speed = 2.0,
+            ramp_time = 0.2,
+            blow_time = 5
+        },
+        clouds = {
+            count = 5,
+            speed_min = 0.2,
+            speed_max = 0.5,
+            size_min = 32,
+            size_max = 64
+        },
+        snow_only_levels = {17, 18, 19},
+        snow_wind_levels = {20, 21, 22, 23, 24, 25, 26, 27, 28}
+    }
+    
+    game_config = {
+        fps = 30,
+        world_size = 1024,
+        screen_size = 128
+    }
 
     p={
         sp=1,
@@ -22,7 +70,7 @@ function _init()
         max_slide=3.5,
         acc=1.4,
         walk_acc=0.4,
-        jump_acc=2,
+        jump_acc=1.9,
         boost=0,
         boost_max=4.8,
         anim=0,
@@ -36,18 +84,22 @@ function _init()
         smash=false,
         dir=false,
         hit=false,
-        lock_jump=false
+        lock_jump=false,
+        air_moved=false,
+        wind_timer=0,
+        wind_ramp=0,
+        ground_wind_timer=0,
+        ground_wind_ramp=0
     }
 
     clouds = {}
-
-    for i=0,10 do
-        add(clouds,{
-            x=rnd(128),
-            y=rnd(128),
-            spd=1+rnd(0.5),
-            w=32+rnd(32)
-        })
+    for i=0,weather_config.clouds.count do 
+        clouds[i]={
+            x=rnd(game_config.screen_size),
+            y=rnd(game_config.screen_size),
+            spd=weather_config.clouds.speed_min+rnd(weather_config.clouds.speed_max-weather_config.clouds.speed_min),
+            w=weather_config.clouds.size_min+rnd(weather_config.clouds.size_max-weather_config.clouds.size_min)
+        } 
     end
 
     menu_pos=1
@@ -61,16 +113,16 @@ function _init()
     seconds=0
     minutes=0
     
-    menu_music=true
-    game_music=true
+    menu_music=false
+    game_music=false
     show_time=true
     max_menu=0
-    init_lvl=1
+    init_lvl=23
     s=0
 
-    gravity=0.24
-    friction=0.2
-    friciton_ice=0.6
+    gravity=physics_config.gravity
+    friction=physics_config.friction
+    friciton_ice=physics_config.friction_ice
     
     air_time=0
     jump_counter=0
@@ -80,8 +132,56 @@ function _init()
     cam_y=0
 
     map_start=0
-    map_end=1024
+    map_end=game_config.world_size
+    
+    --current level tracking
+    current_lvl = 1
     
     --weather--
     rain ={}
+    
+    --snow and wind system--
+    snow = {}
+    for i=0,weather_config.snow.count do 
+        snow[i]={
+            x=rnd(game_config.screen_size),
+            y=rnd(game_config.screen_size),
+            spd=weather_config.snow.speed_min+rnd(weather_config.snow.speed_max-weather_config.snow.speed_min)
+        } 
+    end
+    
+    --wind cycle: 1s ramp up, 5s blow, 1s ramp down, repeat other direction
+    wind_timer = 0
+    wind_phase = 0 -- 0=ramp up left, 1=blow left, 2=ramp down left, 3=ramp up right, 4=blow right, 5=ramp down right
+    wind_strength = 0 -- 0 to 1
+    wind_direction = -1 -- -1 left, 1 right
+    max_wind_speed = weather_config.wind.max_speed
+    
+    --player wind ramp tracking
+    player_wind_ramp = 0 -- 0 to 1, builds up over time in air
+    player_wind_timer = 0
+    
+    --levels with snow only
+    snow_only_levels = weather_config.snow_only_levels
+    --levels with snow/wind effect
+    snow_wind_levels = weather_config.snow_wind_levels
+
+    --world height background system
+    max_world_height_reached = 128  -- start with enough to show initial forest zone
+
+    --background zones defined by world heights (based on environment transitions)
+    world_bg_zones = {
+        {world_height_start = 0,    world_height_end = 624,  color = 3},  -- forest (environment 1)
+        {world_height_start = 624,  world_height_end = 888,  color = 5},  -- underground (environment 2)
+        {world_height_start = 888,  world_height_end = 1320, color = 2},  -- deep underground (environment 3)
+        {world_height_start = 1320, world_height_end = 1624, color = 4},  -- pre-peak (environment 4)
+        {world_height_start = 1624, world_height_end = 9999, color = 0}   -- sky/peaks (environment 5)
+    }
+end
+
+function update_ramp(timer, ramp_time)
+    --generic ramp function: returns new_timer, ramp_value
+    local new_timer = timer + 1/game_config.fps
+    local ramp_value = min(1, new_timer / ramp_time)
+    return new_timer, ramp_value
 end

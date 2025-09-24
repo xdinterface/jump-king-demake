@@ -11,7 +11,7 @@ function p_animate()
         or btn(➡️))
         and p.grounded
         and not p.crouching then
-                if time()-p.anim>.1 then
+                if time()-p.anim>physics_config.anim_rate then
                         p.anim=time()
                         p.sp=p.sp+1
                         if p.sp>5 then

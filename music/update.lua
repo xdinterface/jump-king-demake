@@ -16,4 +16,3 @@ function update_menu_music()
 		music(-1, 300)
 	end
 end
-
