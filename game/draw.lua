@@ -18,7 +18,7 @@ function draw_game()
 	--draw_rain()
 
 	--debug system--
-	if debug == true then
+	if debug == true and debug_master == true then
 		local debug_info = {}
 		local y_offset = 8
 

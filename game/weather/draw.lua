@@ -23,23 +23,32 @@ function draw_clouds()
     foreach(clouds, function(c)
         c.x += c.spd
 
-        --draw cloud with multiple overlapping circles for more natural shape
+        --draw solid clouds with variable height and smooth sub-pixel movement
         local cloud_x = c.x + cam_x
         local cloud_y = c.y + cam_y
         local cloud_w = c.w
-        local cloud_h = 8 + (1 - c.w/64) * 8
+        local cloud_h = flr(6 * c.h_mult)  --variable height based on multiplier
 
-        --main cloud body (base rectangle)
-        rectfill(cloud_x + cloud_w * 0.2, cloud_y + cloud_h * 0.4, cloud_x + cloud_w * 0.8, cloud_y + cloud_h, 1)
+        --adjust width slightly based on height for natural proportions
+        local w_adjust = (c.h_mult > 1.2) and -4 or 0  --taller clouds are slightly slimmer
+        local adj_w = cloud_w + w_adjust
 
-        --cloud puffs (overlapping circles using circfill)
-        circfill(cloud_x + cloud_w * 0.3, cloud_y + cloud_h * 0.6, cloud_h * 0.4, 1)
-        circfill(cloud_x + cloud_w * 0.5, cloud_y + cloud_h * 0.3, cloud_h * 0.5, 1)
-        circfill(cloud_x + cloud_w * 0.7, cloud_y + cloud_h * 0.6, cloud_h * 0.4, 1)
+        --main cloud body (rectangle with rounded ends)
+        rectfill(cloud_x + 4, cloud_y + 2, cloud_x + adj_w - 4, cloud_y + cloud_h - 2, 13)
+
+        --add some irregular edges for natural shape (scaled with height)
+        if cloud_h > 4 then
+            rectfill(cloud_x + 2, cloud_y + 3, cloud_x + adj_w - 2, cloud_y + cloud_h - 3, 13)
+        end
+        if cloud_h > 3 then
+            rectfill(cloud_x + 6, cloud_y + 1, cloud_x + adj_w - 6, cloud_y + cloud_h - 1, 13)
+        end
 
         if c.x > game_config.screen_size then
             c.x = -c.w
-            c.y = rnd(game_config.screen_size - 16)
+            --maintain cloud grouping by staying in same layer
+            local cloud_layers = {20, 45, 70}
+            c.y = cloud_layers[c.layer] + rnd(12) - 6  --stay in same layer ± 6px variation
         end
     end)
 end

@@ -1,8 +1,9 @@
 function collide_map(obj, aim, flag)
-	local x = obj.x
-	local y = obj.y
-	local w = obj.w
-	local h = obj.h
+	--use hitbox properties if available, otherwise fall back to sprite dimensions
+	local x = obj.x + (obj.hb_x_off or 0)
+	local y = obj.y + (obj.hb_y_off or 0)
+	local w = obj.hb_w or obj.w
+	local h = obj.hb_h or obj.h
 
 	local x1 = 0
 	local x2 = 0
@@ -12,12 +13,12 @@ function collide_map(obj, aim, flag)
 	if aim == "left" then
 		x1 = x - 1
 		x2 = x - 1
-		y1 = y + 2
+		y1 = y + 1  --small offset to avoid ceiling collision
 		y2 = y + h - 1
 	elseif aim == "right" then
 		x1 = x + w
 		x2 = x + w
-		y1 = y + 2
+		y1 = y + 1  --small offset to avoid ceiling collision
 		y2 = y + h - 1
 	elseif aim == "up" then
 		x1 = x + 1
@@ -65,10 +66,10 @@ end
 
 function in_deep_snow(obj)
 	--check if any part of player hitbox intersects with bottom 2px of flag 5 tiles
-	local x = obj.x
-	local y = obj.y
-	local w = obj.w
-	local h = obj.h
+	local x = obj.x + (obj.hb_x_off or 0)
+	local y = obj.y + (obj.hb_y_off or 0)
+	local w = obj.hb_w or obj.w
+	local h = obj.hb_h or obj.h
 
 	--get all tiles that player hitbox could overlap
 	local tile_x1 = flr(x / 8)

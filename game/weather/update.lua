@@ -1,4 +1,28 @@
 function update_snow_wind()
+    --check if level changed and reset timer
+    if current_lvl != last_lvl then
+        last_lvl = current_lvl
+        level_entry_time = 0
+
+        --reset wind when leaving wind levels
+        local leaving_wind_level = true
+        for i=1,#snow_wind_levels do
+            if snow_wind_levels[i] == current_lvl then
+                leaving_wind_level = false
+                break
+            end
+        end
+
+        if leaving_wind_level then
+            wind_strength = 0
+            wind_timer = 0
+            wind_phase = 0
+        end
+    end
+
+    --update level entry timer
+    level_entry_time = level_entry_time + 1/game_config.fps
+
     --check if current level has snow (with or without wind)
     local has_snow_only = false
     local has_snow_wind = false
@@ -21,7 +45,16 @@ function update_snow_wind()
     
     --update wind cycle (only for snow+wind levels)
     if has_snow_wind then
-        wind_timer = wind_timer + 1/game_config.fps
+        --add 2 second delay for first wind level (level 20)
+        local wind_delay = (current_lvl == 20) and 2.0 or 0.0
+
+        --only start wind cycle after delay
+        if level_entry_time >= wind_delay then
+            wind_timer = wind_timer + 1/game_config.fps
+        else
+            --during delay, keep wind at zero for player but let snow fall normally
+            wind_strength = 0
+        end
 
         --wind phases: 0=ramp up left, 1=blow left, 2=ramp down left, 3=ramp up right, 4=blow right, 5=ramp down right
         if wind_phase == 0 then --ramp up left
@@ -74,7 +107,9 @@ function update_snow_wind()
         flake.y = flake.y + flake.spd
         
         --wind effect (horizontal movement same speed as falling)
-        if has_snow_wind then
+        --only apply wind if we're past the delay period (if any)
+        local wind_delay = (current_lvl == 20) and 2.0 or 0.0
+        if has_snow_wind and level_entry_time >= wind_delay then
             flake.x = flake.x + wind_direction * wind_strength * flake.spd * weather_config.snow.wind_factor
         end
         

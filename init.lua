@@ -5,6 +5,7 @@ function _init()
     _draw=draw_title
 
     --496,50 start
+    debug_master = false  --master toggle for all debug info (except time)
     debug = true
     debug_coords = false
     debug_level = true
@@ -32,16 +33,16 @@ function _init()
         },
         wind = {
             max_speed = 1.5,
-            player_force = 0.1,
+            player_force = 0.08,  --reduced from 0.1 to 0.08
             ground_force = 0.1,
             ground_max_speed = 2.0,
             ramp_time = 0.2,
             blow_time = 5
         },
         clouds = {
-            count = 5,
-            speed_min = 0.2,
-            speed_max = 0.5,
+            count = 8,        --more clouds
+            speed_min = 0.06,
+            speed_max = 0.2,
             size_min = 32,
             size_max = 64
         },
@@ -61,6 +62,11 @@ function _init()
         y=496,
         w=8,
         h=8,
+        --hitbox properties (narrower than sprite)
+        hb_x_off=1,  --1 pixel offset from left
+        hb_y_off=0,  --no vertical offset
+        hb_w=6,      --6 pixels wide (1 pixel less on each side)
+        hb_h=8,      --full height
         flp=false,
         dx=0,
         dy=0,
@@ -95,13 +101,18 @@ function _init()
     }
 
     clouds = {}
-    for i=0,weather_config.clouds.count do 
+    --cloud grouping layers
+    local cloud_layers = {20, 45, 70}  --3 height bands for natural grouping
+    for i=0,weather_config.clouds.count do
+        local layer = flr(rnd(3)) + 1  --choose random layer (1-3)
         clouds[i]={
             x=rnd(game_config.screen_size),
-            y=rnd(game_config.screen_size),
+            y=cloud_layers[layer] + rnd(12) - 6,  --layer position ± 6px variation
+            layer=layer,  --remember which layer for wrapping
             spd=weather_config.clouds.speed_min+rnd(weather_config.clouds.speed_max-weather_config.clouds.speed_min),
-            w=weather_config.clouds.size_min+rnd(weather_config.clouds.size_max-weather_config.clouds.size_min)
-        } 
+            w=weather_config.clouds.size_min+rnd(weather_config.clouds.size_max-weather_config.clouds.size_min),
+            h_mult=0.7 + rnd(0.8)  --height multiplier: 0.7 to 1.5 (some taller, some shorter)
+        }
     end
 
     menu_pos=1
@@ -138,6 +149,8 @@ function _init()
     
     --current level tracking
     current_lvl = 1
+    last_lvl = 1  --track previous level to detect level changes
+    level_entry_time = 0  --time since entering current level
     
     --weather--
     rain ={}
