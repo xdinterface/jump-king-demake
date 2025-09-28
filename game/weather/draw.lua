@@ -1,5 +1,5 @@
 function draw_clouds()
-    --don't draw clouds during snow levels (snow-only or snow+wind)
+    --don't draw clouds during snow levels (snow-only or snow+wind) or levels 25-26
     local has_snow = false
 
     for i=1,#snow_only_levels do
@@ -16,6 +16,11 @@ function draw_clouds()
                 break
             end
         end
+    end
+
+    --also skip clouds for levels 25 and 26
+    if current_lvl == 25 or current_lvl == 26 then
+        return
     end
 
     if has_snow then return end

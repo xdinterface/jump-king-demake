@@ -69,7 +69,9 @@ function p_update()
                 end
 
                 if collide_map(p,"down",0) then
+                        --standard snapping for all tiles
                         p.y=p.y-(((p.y+p.h+1)%8)-1)
+
                         if not slide1 and not slide2 then
                                 if p.smash then
                                         sfx(-1,1)
@@ -99,10 +101,32 @@ function p_update()
 --check collision left/right
         if p.dx<0 then
                 handle_speed(slide1, slide2)
-                
+
                 if collide_map(p,"left",0) then
                         if p.grounded then
                                 p.dx=0
+                                --check if we're colliding with a custom hitbox tile
+                                local check_x = p.x + p.hb_x_off - 1
+                                local check_y = p.y + p.hb_y_off + (p.hb_h or p.h)/2
+                                local tile_x = flr(check_x / 8)
+                                local tile_y = flr(check_y / 8)
+                                local tile_id = mget(tile_x, tile_y)
+
+                                --custom snapping for different tile types
+                                if tile_id == 119 or tile_id == 37 then
+                                        --left column tile: snap to right edge of the column (x=1)
+                                        p.x = tile_x * 8 + 1 - p.hb_x_off
+                                elseif tile_id == 118 or tile_id == 36 then
+                                        --right column tile: snap to left edge of the column (x=7)
+                                        p.x = tile_x * 8 + 7 - p.hb_x_off
+                                elseif tile_id == 120 or tile_id == 121 then
+                                        --top row tiles: no horizontal snapping needed
+                                        --just stop movement
+                                else
+                                        --standard tiles: normal snapping
+                                        tile_x = flr((p.x + p.hb_x_off - 1) / 8) + 1
+                                        p.x = tile_x * 8 - p.hb_x_off
+                                end
                         else
                                 sfx(-1,1)
                                 sfx(2,1)
@@ -116,14 +140,36 @@ function p_update()
                                 end
                                 p.hit=true
                         end
-                end 
-                stop_running()           
+                end
+                stop_running()
         elseif p.dx>0 then
                 handle_speed(slide1, slide2)
-                
+
                 if collide_map(p,"right",0) then
                         if p.grounded then
                                 p.dx=0
+                                --check if we're colliding with a custom hitbox tile
+                                local check_x = p.x + p.hb_x_off + p.hb_w
+                                local check_y = p.y + p.hb_y_off + (p.hb_h or p.h)/2
+                                local tile_x = flr(check_x / 8)
+                                local tile_y = flr(check_y / 8)
+                                local tile_id = mget(tile_x, tile_y)
+
+                                --custom snapping for different tile types
+                                if tile_id == 118 or tile_id == 36 then
+                                        --right column tile: snap to left edge of the column (x=7)
+                                        p.x = tile_x * 8 + 7 - p.hb_w - p.hb_x_off
+                                elseif tile_id == 119 or tile_id == 37 then
+                                        --left column tile: shouldn't happen when moving right, but handle it
+                                        p.x = tile_x * 8 + 1 - p.hb_w - p.hb_x_off
+                                elseif tile_id == 120 or tile_id == 121 then
+                                        --top row tiles: no horizontal snapping needed
+                                        --just stop movement
+                                else
+                                        --standard tiles: normal snapping
+                                        tile_x = flr((p.x + p.hb_x_off + p.hb_w) / 8)
+                                        p.x = tile_x * 8 - p.hb_w - p.hb_x_off
+                                end
                         else
                                 sfx(-1,1)
                                 sfx(2,1)

@@ -1,3 +1,32 @@
+function is_point_in_custom_tile(px, py, tile_x, tile_y, tile_id)
+	--check if a single point is within the custom tile's collision area
+	--tile coords are already in tile units, px/py are in pixels
+	local tile_px = tile_x * 8
+	local tile_py = tile_y * 8
+
+	--convert point to relative position within tile
+	local rel_x = px - tile_px
+	local rel_y = py - tile_py
+
+	--check if point is outside tile bounds entirely
+	if rel_x < 0 or rel_x >= 8 or rel_y < 0 or rel_y >= 8 then
+		return false
+	end
+
+	if tile_id == 118 or tile_id == 36 then
+		--rightmost column (x=7) - full height collision
+		return rel_x >= 7
+	elseif tile_id == 119 or tile_id == 37 then
+		--leftmost column (x=0) - full height collision
+		return rel_x < 1
+	elseif tile_id == 120 or tile_id == 121 then
+		--only top 2 rows (y=0-1, 2 pixels high)
+		return rel_y < 2
+	end
+
+	return false
+end
+
 function collide_map(obj, aim, flag)
 	--use hitbox properties if available, otherwise fall back to sprite dimensions
 	local x = obj.x + (obj.hb_x_off or 0)
@@ -11,18 +40,22 @@ function collide_map(obj, aim, flag)
 	local y2 = 0
 
 	if aim == "left" then
-		x1 = x - 1
-		x2 = x - 1
+		--check multiple pixels ahead for high-speed collision
+		local check_dist = min(abs(obj.dx), 4)  --check up to 4 pixels ahead
+		x1 = x - check_dist
+		x2 = x - check_dist
 		y1 = y + 1  --small offset to avoid ceiling collision
 		y2 = y + h - 1
 	elseif aim == "right" then
-		x1 = x + w
-		x2 = x + w
+		--check multiple pixels ahead for high-speed collision
+		local check_dist = min(abs(obj.dx), 4)  --check up to 4 pixels ahead
+		x1 = x + w + check_dist - 1
+		x2 = x + w + check_dist - 1
 		y1 = y + 1  --small offset to avoid ceiling collision
 		y2 = y + h - 1
 	elseif aim == "up" then
-		x1 = x + 1
-		x2 = x + w - 2
+		x1 = x
+		x2 = x + w - 1
 		if flag == 0 then
 			y1 = y - 2
 			y2 = y - 2
@@ -31,8 +64,8 @@ function collide_map(obj, aim, flag)
 			y2 = y + h
 		end
 	elseif aim == "down" then
-		x1 = x + 1
-		x2 = x + w - 2
+		x1 = x
+		x2 = x + w - 1
 		y1 = y + h + 1
 		y2 = y + h + 1
 	elseif aim == "slide" then
@@ -49,10 +82,57 @@ function collide_map(obj, aim, flag)
 	y2 = y2 / 8
 
 	if flag == 0 then
-		return fget(mget(x1, y1), flag)
-			or fget(mget(x1, y2), flag)
-			or fget(mget(x2, y1), flag)
-			or fget(mget(x2, y2), flag)
+		--save original pixel coordinates before tile conversion
+		local orig_x1 = x1 * 8
+		local orig_y1 = y1 * 8
+		local orig_x2 = x2 * 8
+		local orig_y2 = y2 * 8
+
+		--check the four corner points (original system for standard tiles)
+		local corners = {
+			{x1, y1, orig_x1, orig_y1},
+			{x1, y2, orig_x1, orig_y2},
+			{x2, y1, orig_x2, orig_y1},
+			{x2, y2, orig_x2, orig_y2}
+		}
+
+		for i = 1, #corners do
+			local tx = flr(corners[i][1])
+			local ty = flr(corners[i][2])
+			local px = corners[i][3]  --use original pixel coordinates
+			local py = corners[i][4]
+			local tile_id = mget(tx, ty)
+
+			--check if it's a custom hitbox tile
+			if (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 then
+				if is_point_in_custom_tile(px, py, tx, ty, tile_id) then
+					return true
+				end
+			elseif fget(tile_id, flag) then
+				--standard collision for normal tiles
+				return true
+			end
+		end
+
+		--additional thorough check for custom tiles when corner checks might miss
+		if aim == "up" or aim == "down" then
+			local tile_x1 = flr(orig_x1 / 8)
+			local tile_x2 = flr(orig_x2 / 8)
+			local tile_y = flr(orig_y1 / 8)
+
+			for tx = tile_x1, tile_x2 do
+				local tile_id = mget(tx, tile_y)
+				if (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 then
+					--check horizontal span for narrow columns
+					for check_x = orig_x1, orig_x2 do
+						if is_point_in_custom_tile(check_x, orig_y1, tx, tile_y, tile_id) then
+							return true
+						end
+					end
+				end
+			end
+		end
+		return false
 	elseif flag == 1 then
 		return fget(mget(x1, y1), flag) or fget(mget(x1, y2), flag) or fget(mget(x2, y1), flag)
 	elseif flag == 2 then

@@ -26,12 +26,28 @@ end
 
 
 function p_lvl_up()
-	p.x = p.x + 128
-	p.y = p.y + 512
+	--only transition if going to a valid level area
+	--check if destination would be in bounds
+	local new_x = p.x + 128
+	if new_x < 1024 then  --within map bounds
+		p.x = new_x
+		p.y = p.y + 512
+	else
+		--prevent going off map, snap to top edge
+		p.y = 0
+	end
 end
 
 function p_lvl_down()
-	p.x = p.x - 128
-	p.y = p.y - 512
+	--only transition if coming from a valid level area
+	--check if destination would be in bounds
+	local new_x = p.x - 128
+	if new_x >= 0 then  --within map bounds
+		p.x = new_x
+		p.y = p.y - 512
+	else
+		--prevent going off map, snap to bottom edge
+		p.y = 511
+	end
 end
 

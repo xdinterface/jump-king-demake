@@ -5,14 +5,15 @@ function _init()
     _draw=draw_title
 
     --496,50 start
-    debug_master = false  --master toggle for all debug info (except time)
-    debug = true
+    debug_mode = true  --master toggle for all debug features
+    debug_print = false  --toggle for on-screen debug info (requires debug_mode)
     debug_coords = false
     debug_level = true
     debug_grounded = true
     debug_wind = true
     debug_snow = true
     debug_world = false
+    debug_charge = true
     
     --configuration objects--
     physics_config = {
@@ -47,7 +48,7 @@ function _init()
             size_max = 64
         },
         snow_only_levels = {17, 18, 19},
-        snow_wind_levels = {20, 21, 22, 23, 24, 25, 26, 27, 28}
+        snow_wind_levels = {20, 21, 22, 23, 24}
     }
     
     game_config = {
@@ -130,7 +131,7 @@ function _init()
     game_music=false
     show_time=true
     max_menu=0
-    init_lvl=23
+    init_lvl=28
     s=0
 
     gravity=physics_config.gravity
@@ -171,6 +172,7 @@ function _init()
     wind_strength = 0 -- 0 to 1
     wind_direction = -1 -- -1 left, 1 right
     max_wind_speed = weather_config.wind.max_speed
+    initial_wind_delay_done = false -- tracks if initial 2s delay for level 20 has been done
     
     --player wind ramp tracking
     player_wind_ramp = 0 -- 0 to 1, builds up over time in air

@@ -15,8 +15,6 @@ function update_snow_wind()
 
         if leaving_wind_level then
             wind_strength = 0
-            wind_timer = 0
-            wind_phase = 0
         end
     end
 
@@ -43,57 +41,71 @@ function update_snow_wind()
 
     if not has_snow_only and not has_snow_wind then return end
     
-    --update wind cycle (only for snow+wind levels)
-    if has_snow_wind then
-        --add 2 second delay for first wind level (level 20)
-        local wind_delay = (current_lvl == 20) and 2.0 or 0.0
+    --always update wind cycle (keeps running in background)
+    wind_timer = wind_timer + 1/game_config.fps
 
-        --only start wind cycle after delay
-        if level_entry_time >= wind_delay then
-            wind_timer = wind_timer + 1/game_config.fps
-        else
-            --during delay, keep wind at zero for player but let snow fall normally
-            wind_strength = 0
+    --update wind phase transitions (always running)
+    if wind_phase == 0 then --ramp up left
+        wind_direction = -1
+        if wind_timer >= weather_config.wind.ramp_time then
+            wind_phase = 1
+            wind_timer = 0
+        end
+    elseif wind_phase == 1 then --blow left
+        if wind_timer >= weather_config.wind.blow_time then
+            wind_phase = 2
+            wind_timer = 0
+        end
+    elseif wind_phase == 2 then --ramp down left
+        if wind_timer >= weather_config.wind.ramp_time then
+            wind_phase = 3
+            wind_timer = 0
+        end
+    elseif wind_phase == 3 then --ramp up right
+        wind_direction = 1
+        if wind_timer >= weather_config.wind.ramp_time then
+            wind_phase = 4
+            wind_timer = 0
+        end
+    elseif wind_phase == 4 then --blow right
+        if wind_timer >= weather_config.wind.blow_time then
+            wind_phase = 5
+            wind_timer = 0
+        end
+    elseif wind_phase == 5 then --ramp down right
+        if wind_timer >= weather_config.wind.ramp_time then
+            wind_phase = 0
+            wind_timer = 0
+        end
+    end
+
+    --apply wind strength based on phase (only in wind levels)
+    if has_snow_wind then
+        --add 2 second delay for first wind level (level 20) - only once
+        local apply_wind = true
+        if current_lvl == 20 and not initial_wind_delay_done then
+            if level_entry_time < 2.0 then
+                apply_wind = false
+                wind_strength = 0
+            else
+                initial_wind_delay_done = true
+            end
         end
 
-        --wind phases: 0=ramp up left, 1=blow left, 2=ramp down left, 3=ramp up right, 4=blow right, 5=ramp down right
-        if wind_phase == 0 then --ramp up left
-            wind_direction = -1
-            wind_strength = wind_timer
-            if wind_timer >= weather_config.wind.ramp_time then
-                wind_phase = 1
-                wind_timer = 0
-            end
-        elseif wind_phase == 1 then --blow left
-            wind_strength = 1
-            if wind_timer >= weather_config.wind.blow_time then
-                wind_phase = 2
-                wind_timer = 0
-            end
-        elseif wind_phase == 2 then --ramp down left
-            wind_strength = 1 - wind_timer
-            if wind_timer >= weather_config.wind.ramp_time then
-                wind_phase = 3
-                wind_timer = 0
-            end
-        elseif wind_phase == 3 then --ramp up right
-            wind_direction = 1
-            wind_strength = wind_timer
-            if wind_timer >= weather_config.wind.ramp_time then
-                wind_phase = 4
-                wind_timer = 0
-            end
-        elseif wind_phase == 4 then --blow right
-            wind_strength = 1
-            if wind_timer >= weather_config.wind.blow_time then
-                wind_phase = 5
-                wind_timer = 0
-            end
-        elseif wind_phase == 5 then --ramp down right
-            wind_strength = 1 - wind_timer
-            if wind_timer >= weather_config.wind.ramp_time then
-                wind_phase = 0
-                wind_timer = 0
+        --calculate wind strength based on current phase
+        if apply_wind then
+            if wind_phase == 0 then --ramp up left
+                wind_strength = wind_timer / weather_config.wind.ramp_time
+            elseif wind_phase == 1 then --blow left
+                wind_strength = 1
+            elseif wind_phase == 2 then --ramp down left
+                wind_strength = 1 - (wind_timer / weather_config.wind.ramp_time)
+            elseif wind_phase == 3 then --ramp up right
+                wind_strength = wind_timer / weather_config.wind.ramp_time
+            elseif wind_phase == 4 then --blow right
+                wind_strength = 1
+            elseif wind_phase == 5 then --ramp down right
+                wind_strength = 1 - (wind_timer / weather_config.wind.ramp_time)
             end
         end
     else
@@ -107,9 +119,8 @@ function update_snow_wind()
         flake.y = flake.y + flake.spd
         
         --wind effect (horizontal movement same speed as falling)
-        --only apply wind if we're past the delay period (if any)
-        local wind_delay = (current_lvl == 20) and 2.0 or 0.0
-        if has_snow_wind and level_entry_time >= wind_delay then
+        --apply wind if in wind level
+        if has_snow_wind then
             flake.x = flake.x + wind_direction * wind_strength * flake.spd * weather_config.snow.wind_factor
         end
         
