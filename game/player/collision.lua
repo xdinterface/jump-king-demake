@@ -178,4 +178,29 @@ function in_deep_snow(obj)
 	return false
 end
 
+function on_ice(obj)
+	--check if player is standing on ice tiles (flag 6)
+	if not obj.grounded then
+		return false
+	end
+
+	local x = obj.x + (obj.hb_x_off or 0)
+	local y = obj.y + (obj.hb_y_off or 0)
+	local w = obj.hb_w or obj.w
+	local h = obj.hb_h or obj.h
+
+	--check tiles directly beneath player
+	local tile_x1 = flr(x / 8)
+	local tile_x2 = flr((x + w - 1) / 8)
+	local tile_y = flr((y + h + 1) / 8)  --check one pixel below player
+
+	for tx = tile_x1, tile_x2 do
+		local sprite_id = mget(tx, tile_y)
+		if fget(sprite_id, 6) then
+			return true
+		end
+	end
+	return false
+end
+
 

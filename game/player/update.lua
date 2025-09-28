@@ -9,37 +9,48 @@ function p_update()
         end
 
         p_movement()
-        --physics
-        p.dy=p.dy+gravity
 
-        --cache collision results for this frame
+        --cache collision results for this frame (consistent state)
         local slide1 = collide_map(p, "slide", 1)
         local slide2 = collide_map(p, "slide", 2)
 
-        --apply horizontal slide acceleration if on diagonal slopes
-        --this matches the vertical gravity acceleration to maintain slope angle
-        if slide1 then
-                --slide left (flag 1: top-right to bottom-left)
-                p.dx = p.dx - gravity
-                --ensure speeds stay matched for proper diagonal movement
-                if abs(p.dx) < abs(p.dy) then
-                        p.dx = -abs(p.dy)  --force horizontal to match vertical
+        --handle diagonal collision and physics
+        if slide1 or slide2 then
+                local slide_dir = slide1 and -1 or 1
+
+                --check if this is initial contact with diagonal
+                if not p.was_on_diagonal then
+                        --first contact: handle opposite direction movement
+                        if p.dx != 0 and sgn(p.dx) != sgn(slide_dir) then
+                                --moving opposite to slide direction: reset momentum
+                                reset_all_momentum()
+                        end
                 end
+
+                --apply gravity to both axes for synchronized 45-degree slide
+                if slide1 then
+                        --slide left (flag 1: top-right to bottom-left)
+                        p.dx = p.dx - gravity
+                else
+                        --slide right (flag 2: top-left to bottom-right)
+                        p.dx = p.dx + gravity
+                end
+                p.dy = p.dy + gravity  --match vertical to horizontal movement
+
+                --limit diagonal slide speed to prevent skipping collision
+                p.dx = mid(-2.5, p.dx, 2.5)
+                p.dy = mid(0, p.dy, 2.5)
+
+                --reset ice sliding state when on diagonal
+                p.ice_slide_speed = 0
+                p.ice_acc_timer = 0
                 --maintain hard fall state while sliding
                 p.lying = true
                 p.smash = true
                 p.grounded = false  --player is sliding, not grounded
-        elseif slide2 then
-                --slide right (flag 2: top-left to bottom-right)
-                p.dx = p.dx + gravity
-                --ensure speeds stay matched for proper diagonal movement
-                if abs(p.dx) < abs(p.dy) then
-                        p.dx = abs(p.dy)  --force horizontal to match vertical
-                end
-                --maintain hard fall state while sliding
-                p.lying = true
-                p.smash = true
-                p.grounded = false  --player is sliding, not grounded
+        else
+                --not on diagonal: normal gravity only to dy
+                p.dy = p.dy + gravity
         end
 
         if collide_map(p,"down",7) then
@@ -87,6 +98,21 @@ function p_update()
                                 p.hit=false
                                 p.dy=0
                                 p.air_moved=false  --reset air movement flag on landing
+
+                                --preserve momentum when landing on ice (only if significant movement)
+                                if on_ice(p) then
+                                        if abs(p.dx) > physics_config.ice_slide_threshold then
+                                                p.ice_slide_speed = p.dx
+                                        else
+                                                p.ice_slide_speed = 0
+                                        end
+                                        --reset acceleration timer for fresh start
+                                        p.ice_acc_timer = 0
+                                elseif p.was_on_ice then
+                                        --transitioning from ice to normal ground
+                                        p.ice_slide_speed = 0
+                                        p.ice_acc_timer = 0
+                                end
                         end
                 end
         elseif p.dy<0 then
@@ -105,6 +131,9 @@ function p_update()
                 if collide_map(p,"left",0) then
                         if p.grounded then
                                 p.dx=0
+                                --reset ice sliding state when hitting wall
+                                p.ice_slide_speed = 0
+                                p.ice_acc_timer = 0
                                 --check if we're colliding with a custom hitbox tile
                                 local check_x = p.x + p.hb_x_off - 1
                                 local check_y = p.y + p.hb_y_off + (p.hb_h or p.h)/2
@@ -130,6 +159,9 @@ function p_update()
                         else
                                 sfx(-1,1)
                                 sfx(2,1)
+                                --reset ice sliding state when bouncing off wall
+                                p.ice_slide_speed = 0
+                                p.ice_acc_timer = 0
                                 --calculate wind contribution for cushioning
                                 local wind_contribution = calculate_wind_contribution()
                                 --cushion bounce if wind is pushing into wall
@@ -148,6 +180,9 @@ function p_update()
                 if collide_map(p,"right",0) then
                         if p.grounded then
                                 p.dx=0
+                                --reset ice sliding state when hitting wall
+                                p.ice_slide_speed = 0
+                                p.ice_acc_timer = 0
                                 --check if we're colliding with a custom hitbox tile
                                 local check_x = p.x + p.hb_x_off + p.hb_w
                                 local check_y = p.y + p.hb_y_off + (p.hb_h or p.h)/2
@@ -173,6 +208,9 @@ function p_update()
                         else
                                 sfx(-1,1)
                                 sfx(2,1)
+                                --reset ice sliding state when bouncing off wall
+                                p.ice_slide_speed = 0
+                                p.ice_acc_timer = 0
                                 --calculate wind contribution for cushioning
                                 local wind_contribution = calculate_wind_contribution()
                                 --cushion bounce if wind is pushing into wall
@@ -185,8 +223,13 @@ function p_update()
                         end
                 end
                 stop_running()
-        end		
-    
+        end
+
+        --limit movement per frame to prevent collision skipping
+        local max_frame_movement = 4  --pixels per frame
+        p.dx = mid(-max_frame_movement, p.dx, max_frame_movement)
+        p.dy = mid(-max_frame_movement, p.dy, max_frame_movement)
+
         p.x=p.x+p.dx
         p.y=p.y+p.dy
 
@@ -198,6 +241,32 @@ function p_update()
         end
         --keep current facing if velocity is near zero
 
+        --track ice state for next frame
+        p.was_on_ice = on_ice(p)
+
+        --track diagonal state for next frame
+        p.was_on_diagonal = slide1 or slide2
+
+        --clear lying state when stopped after diagonal slide
+        if p.lying and p.grounded and abs(p.dx) < 0.1 then
+                p.lying = false
+        end
+
+        --reset ice state when leaving ground (but preserve for jump calculation)
+        if not p.grounded then
+                --only reset if we've already used the ice speed for jumping
+                if p.air_moved then
+                        p.ice_slide_speed = 0
+                end
+                p.ice_acc_timer = 0
+        end
+
+        --reset diagonal state when grounded (not sliding)
+        if p.grounded then
+                p.was_on_diagonal = false
+                p.diagonal_started = false
+        end
+
 end
 
 function limit_speed(num, maximum)
@@ -206,9 +275,14 @@ end
 
 function stop_running()
         if p.grounded and not p.running then
-                --preserve ground wind effect when stopping
-                local ground_wind_force = calculate_ground_wind_force()
-                p.dx = ground_wind_force
+                --on ice, preserve sliding momentum
+                if on_ice(p) and abs(p.ice_slide_speed) > physics_config.ice_slide_threshold then
+                        p.dx = p.ice_slide_speed
+                else
+                        --preserve ground wind effect when stopping
+                        local ground_wind_force = calculate_ground_wind_force()
+                        p.dx = ground_wind_force
+                end
         end
 end
 

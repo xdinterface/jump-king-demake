@@ -19,7 +19,10 @@ function _init()
     physics_config = {
         gravity = 0.24,
         friction = 0.2,
-        friction_ice = 0.6,
+        ice_decel = 0.08,  --deceleration rate on ice when not moving
+        ice_counter_decel = 0.15,  --deceleration when moving opposite to slide
+        ice_acc_ramp = 0.25,  --acceleration ramp-up rate on ice
+        ice_slide_threshold = 0.08,  --minimum speed to keep sliding (slightly lower)
         charge_rate = 0.06,
         anim_rate = 0.1,
         bounce_factor = 0.7
@@ -98,6 +101,12 @@ function _init()
         ground_wind_timer=0,
         ground_wind_ramp=0,
         jump_canceled=false,
+        ice_slide_speed=0,
+        ice_acc_timer=0,
+        was_on_ice=false,
+        ice_sliding=false,
+        was_on_diagonal=false,
+        diagonal_started=false,
         jump_btn_held=false
     }
 
