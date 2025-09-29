@@ -118,6 +118,18 @@ function p_movement()
     and not p.lying then  --can't crouch/jump while lying
         p.crouching=true
 
+        --handle ice sliding while crouching
+        if is_on_ice and abs(p.ice_slide_speed) > physics_config.ice_slide_threshold then
+            --apply deceleration while crouching on ice
+            p.ice_slide_speed = p.ice_slide_speed - sgn(p.ice_slide_speed) * physics_config.ice_decel
+            if abs(p.ice_slide_speed) < physics_config.ice_slide_threshold then
+                p.ice_slide_speed = 0
+                p.ice_acc_timer = 0
+            end
+            --update actual velocity to maintain sliding motion
+            p.dx = p.ice_slide_speed
+        end
+
         --charge jump while crouching
         if time()-air_time > physics_config.charge_rate then
             air_time = time()

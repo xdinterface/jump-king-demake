@@ -140,7 +140,7 @@ function _init()
     game_music=false
     show_time=true
     max_menu=0
-    init_lvl=28
+    init_lvl=32
     s=0
 
     gravity=physics_config.gravity
@@ -149,7 +149,8 @@ function _init()
     
     air_time=0
     jump_counter=0
-    
+    fall_counter=0
+
     --camera
     cam_x=0
     cam_y=0

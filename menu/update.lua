@@ -19,10 +19,10 @@ function update_menu()
         function()
             if not debug_mode then return end
             if btnp(➡️) or btnp(🅾️) then
-                init_lvl = init_lvl < 28 and init_lvl + 1 or 1
+                init_lvl = init_lvl < 32 and init_lvl + 1 or 1
                 set_lvl()
             elseif btnp(⬅️) or btnp(❎) then
-                init_lvl = init_lvl > 1 and init_lvl - 1 or 28
+                init_lvl = init_lvl > 1 and init_lvl - 1 or 32
                 set_lvl()
             end
         end

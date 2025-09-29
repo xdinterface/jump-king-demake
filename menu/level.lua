@@ -84,6 +84,18 @@ function set_lvl()
 	elseif effective_lvl == 28 then
 		p.x = 880
 		p.y = 112
+	elseif effective_lvl == 29 then
+		p.x = 944  -- 118 * 8
+		p.y = 496  -- 62 * 8
+	elseif effective_lvl == 30 then
+		p.x = 968  -- 121 * 8
+		p.y = 344  -- 43 * 8
+	elseif effective_lvl == 31 then
+		p.x = 944  -- 118 * 8
+		p.y = 248  -- 31 * 8
+	elseif effective_lvl == 32 then
+		p.x = 928  -- 116 * 8
+		p.y = 72   -- 9 * 8
 	end
 end
 
