@@ -86,30 +86,46 @@ function p_update()
                 end
 
                 if collide_map(p,"down",0) then
-                        --check if we're landing on any diagonal tile edge (shouldn't be able to stand on diagonals)
+                        --solid support diagonal collision check
                         local left_x = p.x + p.hb_x_off
-                        local right_x = p.x + p.hb_x_off + p.hb_w - 1
                         local check_y = p.y + p.hb_y_off + p.hb_h + 1
-
-                        --check all tiles the player is standing on
                         local tile_y = flr(check_y / 8)
-                        local tile_x_left = flr(left_x / 8)
-                        local tile_x_right = flr(right_x / 8)
 
-                        --check each tile under the player
-                        local standing_on_diagonal = false
-                        for tx = tile_x_left, tile_x_right do
-                                local tile_below = mget(tx, tile_y)
-                                if fget(tile_below, 1) or fget(tile_below, 2) or fget(tile_below, 3) or fget(tile_below, 4) then
-                                        standing_on_diagonal = true
+                        --check if player has solid ground support
+                        local has_solid_support = false
+                        for pixel_x = 0, 5 do  --check each pixel of 6-pixel hitbox
+                                local check_x = left_x + pixel_x
+                                local tile_x = flr(check_x / 8)
+                                local tile = mget(tile_x, tile_y)
+
+                                --count as solid if flag 0 AND not diagonal (flags 1,2)
+                                if fget(tile, 0) and not (fget(tile, 1) or fget(tile, 2)) then
+                                        has_solid_support = true
                                         break
                                 end
                         end
 
-                        --if any tile below is diagonal, don't allow standing
-                        if standing_on_diagonal then
-                                --don't set grounded, keep falling/sliding
-                                return
+                        if has_solid_support then
+                                --has solid support - can stand normally
+                                --continue with standard grounding logic
+                        else
+                                --no solid support - check if over diagonal to start sliding
+                                local over_diagonal = false
+                                for pixel_x = 0, 5 do
+                                        local check_x = left_x + pixel_x
+                                        local tile_x = flr(check_x / 8)
+                                        local tile = mget(tile_x, tile_y)
+                                        if fget(tile, 1) or fget(tile, 2) then
+                                                over_diagonal = true
+                                                break
+                                        end
+                                end
+
+                                if over_diagonal then
+                                        --start sliding - no solid support AND over diagonal
+                                        return
+                                end
+                                --otherwise continue with normal fall/air logic
                         end
 
                         --standard snapping for all tiles

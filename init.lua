@@ -82,7 +82,7 @@ function _init()
         walk_acc=0.4,
         jump_acc=1.9,
         boost=0,
-        boost_max=4.8,
+        boost_max=5.05,
         anim=0,
         grounded=false,
         running=false,
