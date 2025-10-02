@@ -28,6 +28,7 @@ function reset_game_state()
     fall_counter = 0
     ending_timer = 0
     ending_phase = 1
+    timer_stopped = false
 
     p.x = 60
     p.y = 496
@@ -37,9 +38,9 @@ function reset_game_state()
     p.grounded = false
     p.jumping = false
     p.falling = false
-    p.lying = false
+    p.splat = false
     p.landing = false
-    p.smash = false
+    p.slammed = false
     p.hit = false
     p.crouching = false
     p.ice_slide_speed = 0

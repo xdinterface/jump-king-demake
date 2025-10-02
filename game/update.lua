@@ -1,20 +1,24 @@
 function update_game()
-	frames = ((frames + 1) % fps)
-	if frames == 0 then
-		seconds = ((seconds + 1) % 60)
-		if seconds == 0 then
-			minutes = ((minutes + 1) % 60)
-			if minutes == 0 then
-				hours = hours + 1
-			end
-		end
-	end
-
-	--check for victory condition
+	--check for victory condition first (before timer update)
 	if check_victory() then
+		timer_stopped = true
 		_update = update_ending_transition
 		_draw = draw_ending_transition
 		return
+	end
+
+	--only update timer if not stopped
+	if not timer_stopped then
+		frames = ((frames + 1) % fps)
+		if frames == 0 then
+			seconds = ((seconds + 1) % 60)
+			if seconds == 0 then
+				minutes = ((minutes + 1) % 60)
+				if minutes == 0 then
+					hours = hours + 1
+				end
+			end
+		end
 	end
 
 	--animate princess if player is near
@@ -39,7 +43,7 @@ function update_game()
 	--update background progress tracking
 	update_background_progress()
 
-	--update_rain()
+	update_rain()
 	update_clouds()
 	update_snow_wind()
 end

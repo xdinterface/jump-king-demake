@@ -28,17 +28,21 @@ function draw_clouds()
 end
 
 function draw_rain()
-    foreach(rain, function(c)
-        c.y =c.y+ c.spd
-        rectfill(
-        c.x,c.y,
-        c.x+c.w,
-        c.y+4+(1-c.w/64)*12,1)
-        if c.y > cam_y+128 then
-            c.y = cam_y-128   
-            c.x = rnd(128)   
+    if not rain_active then return end
+
+    -- Draw far/background rain first (lighter color)
+    for r in all(rain) do
+        if r.far then
+            line(r.x, r.y, r.x, r.y + r.len, 5)  -- color 5 (dark gray) for distant
         end
-    end)
+    end
+
+    -- Draw near/foreground rain on top (darker color)
+    for r in all(rain) do
+        if not r.far then
+            line(r.x, r.y, r.x, r.y + r.len, 6)  -- color 6 (light gray) for close
+        end
+    end
 end
 
 function draw_snow()

@@ -9,28 +9,24 @@ function is_point_on_diagonal_slope(px, py, tile_x, tile_y, flag)
 	end
 
 	if flag == 1 then
-		-- Top-left to bottom-right (\): custom hitbox pattern
 		if rel_y == 7 then
-			return true  -- Bottom row all solid
+			return true
 		elseif rel_y == 0 then
-			return rel_x == 0  -- Top row only x=0
+			return rel_x == 0
 		else
-			return rel_x <= rel_y  -- Standard diagonal for other rows
+			return rel_x <= rel_y
 		end
 	elseif flag == 2 then
-		-- Top-right to bottom-left (/): custom hitbox pattern (mirrored)
 		if rel_y == 7 then
-			return true  -- Bottom row all solid
+			return true
 		elseif rel_y == 0 then
-			return rel_x == 7  -- Top row only x=7
+			return rel_x == 7
 		else
-			return rel_x >= (7 - rel_y)  -- Standard diagonal for other rows
+			return rel_x >= (7 - rel_y)
 		end
 	elseif flag == 3 then
-		-- Bottom-left to top-right (/): exact slope for upward collision only
 		return rel_y <= (7 - rel_x)
 	elseif flag == 4 then
-		-- Bottom-right to top-left (\): exact slope for upward collision only
 		return rel_y <= rel_x
 	end
 
@@ -172,20 +168,28 @@ function collide_map(obj, aim, flag)
 		end
 		return false
 	elseif flag >= 1 and flag <= 4 then
-		-- Pixel-perfect diagonal collision detection
+		-- Precise diagonal collision detection
 		-- Convert tile coordinates back to pixels
 		local px1, py1 = x1 * 8, y1 * 8
 		local px2, py2 = x2 * 8, y2 * 8
 
-		local corners = {
-			{px1, py1},
-			{px1, py2},
-			{px2, py1},
-			{px2, py2}
-		}
+		-- Check multiple points along hitbox edges, not just corners
+		local check_points = {}
 
-		for i = 1, #corners do
-			local px, py = corners[i][1], corners[i][2]
+		-- Top and bottom edges
+		for px = px1, px2 do
+			add(check_points, {px, py1})  -- top edge
+			add(check_points, {px, py2})  -- bottom edge
+		end
+
+		-- Left and right edges
+		for py = py1, py2 do
+			add(check_points, {px1, py})  -- left edge
+			add(check_points, {px2, py})  -- right edge
+		end
+
+		for i = 1, #check_points do
+			local px, py = check_points[i][1], check_points[i][2]
 			local tile_x = flr(px / 8)
 			local tile_y = flr(py / 8)
 			local tile = mget(tile_x, tile_y)

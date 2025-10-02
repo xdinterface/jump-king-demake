@@ -90,9 +90,9 @@ function _init()
         crouching=false,
         jumping=false,
         falling=false,
-        lying=false,
+        splat=false,
         landing=false,
-        smash=false,
+        slammed=false,
         dir=false,
         hit=false,
         lock_jump=false,
@@ -173,6 +173,14 @@ function _init()
     
     --weather--
     rain ={}
+    rain_areas = {
+        {x1=17, y1=0, x2=20, y2=3},    --area 1: bottom section
+        {x1=33, y1=37, x2=36, y2=63},   --area 2: vertical section
+        {x1=33, y1=35, x2=38, y2=36},   --area 3: small horizontal
+        {x1=33, y1=24, x2=39, y2=34}    --area 4: larger vertical
+    }
+    rain_count = 40
+    rain_active = false
     
     --snow
     snow = {}
@@ -222,6 +230,7 @@ function _init()
     ending_timer = 0
     ending_phase = 1
     phase_progress = 0
+    timer_stopped = false
 
     --princess variables
     princess_x = 984  --tile x123 * 8

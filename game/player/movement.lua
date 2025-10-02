@@ -38,9 +38,9 @@ function p_movement()
     if move_dir != 0 and p.grounded then
         p.flp = move_dir < 0
         p.dir = true
-        --stand up from lying if trying to move
-        if p.lying then
-            p.lying = false
+        --stand up from splat if trying to move
+        if p.splat then
+            p.splat = false
         end
         if not p.crouching then
             if is_on_ice then
@@ -87,11 +87,11 @@ function p_movement()
 
     p.jump_btn_held = btn(🅾️)
 
-    --crouch (can't while lying)
+    --crouch (can't while splat)
     if btn(🅾️)
     and p.grounded
     and not p.lock_jump
-    and not p.lying then
+    and not p.splat then
         p.crouching=true
 
         if is_on_ice and abs(p.ice_slide_speed) > ice_thresh then
@@ -171,14 +171,14 @@ function p_movement()
                 if sgn(air_dir) != sgn(p.ice_slide_speed) then
                     --opposite to slide: reduce strength
                     local reduction = abs(p.ice_slide_speed) * 0.5
-                    if p.lying or p.running then
+                    if p.splat or p.running then
                         p.dx = p.dx + air_dir * max(p.acc - reduction, p.acc * 0.3)
                     else
                         p.dx = p.dx + air_dir * max(p.jump_acc - reduction, p.jump_acc * 0.3)
                     end
                 else
                     --same direction: normal
-                    if p.lying or p.running then
+                    if p.splat or p.running then
                         p.dx = p.dx + air_dir * p.acc
                     else
                         p.dx = p.dx + air_dir * p.jump_acc
@@ -186,7 +186,7 @@ function p_movement()
                 end
             else
                 --normal jump
-                if p.lying or p.running then
+                if p.splat or p.running then
                     p.dx = p.dx + air_dir * p.acc
                 else
                     p.dx = p.dx + air_dir * p.jump_acc
@@ -199,7 +199,7 @@ function p_movement()
 
             --diagonal collision: match speeds for 45° angle
             p.dx = slide_dir * abs(p.dy)
-            p.lying, p.smash, p.landing = true, true, false
+            p.splat, p.slammed, p.landing = true, true, false
             p.air_moved = true
         end
     end

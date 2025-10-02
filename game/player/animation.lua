@@ -1,5 +1,5 @@
 function p_animate()
-        if p.lying then
+        if p.splat then
                 p.sp=9
         elseif p.jumping then
                 p.sp=7

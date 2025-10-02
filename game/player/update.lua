@@ -36,14 +36,14 @@ function p_update()
 
                 --only go into lying/smashing state if moving fast enough
                 local total_speed = abs(p.dx) + abs(p.dy)
-                local lying_threshold = 2.0  --threshold for lying down state
+                local lying_threshold = 1.8
 
                 if total_speed >= lying_threshold then
-                        p.lying = true
-                        p.smash = true
+                        p.splat = true
+                        p.slammed = true
                 else
-                        p.lying = false
-                        p.smash = false
+                        p.splat = false
+                        p.slammed = false
                         p.falling = true  --gentle falling state instead
                 end
 
@@ -61,8 +61,8 @@ function p_update()
         end
 
         if p.dy>=p.max_dy then
-                p.lying=true
-                p.smash=true
+                p.splat=true
+                p.slammed=true
                 p.landing=false
         end
     
@@ -70,7 +70,7 @@ function p_update()
                 p.falling=true
                 p.grounded=false
                 p.jumping=false
-                if not p.smash and p.dy>1 then
+                if not p.slammed and p.dy>1 then
                         p.landing=true
                 end
 
@@ -84,10 +84,10 @@ function p_update()
                         p.y=p.y-(((p.y+p.h+1)%8)-1)
 
                         if not slide1 and not slide2 then
-                                if p.smash then
+                                if p.slammed then
                                         sfx(-1,1)
                                         sfx(3,1)
-                                        p.smash=false
+                                        p.slammed=false
                                         fall_counter=fall_counter+1
                                 elseif p.landing then
                                         sfx(-1,1)
@@ -259,8 +259,8 @@ function p_update()
         p.was_on_ice = on_ice(p)
         p.was_on_diagonal = slide1 or slide2
 
-        if p.lying and p.grounded and abs(p.dx) < 0.1 then
-                p.lying = false
+        if p.splat and p.grounded and abs(p.dx) < 0.1 then
+                p.splat = false
         end
 
         if not p.grounded then

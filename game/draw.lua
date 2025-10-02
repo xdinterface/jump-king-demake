@@ -19,7 +19,7 @@ function draw_game()
 	if show_time then
 		draw_time()
 	end
-	--draw_rain()
+	draw_rain()
 
 	--debug system--
 	if debug_mode and debug_print then

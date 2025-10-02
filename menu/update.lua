@@ -17,6 +17,7 @@ function update_menu()
                 hours = 0
                 jump_counter = 0
                 fall_counter = 0
+                timer_stopped = false
                 current_level_column = flr(p.x / 128)
                 cam_x = current_level_column * 128
                 cam_y = flr(p.y / 128) * 128
