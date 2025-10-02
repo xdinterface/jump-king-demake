@@ -2,8 +2,6 @@ function update_game_music()
 	if game_music then
 		music(0, 120)
 		game_music = false
-		--elseif not stop_music then
-		--music(-1,300)
 	end
 end
 

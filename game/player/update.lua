@@ -1,76 +1,71 @@
 function p_update()
-        --cache wind level check for this frame (used across multiple functions)
-        has_wind_this_level = false
-        for i=1,#snow_wind_levels do
-                if snow_wind_levels[i] == current_lvl then
-                        has_wind_this_level = true
-                        break
-                end
-        end
+        has_wind_this_level = in_levels(current_lvl, snow_wind_levels)
 
         p_movement()
 
-        --cache collision results for this frame (consistent state)
         local slide1 = collide_map(p, "slide", 1)
         local slide2 = collide_map(p, "slide", 2)
 
-        --handle diagonal collision and physics
         if slide1 or slide2 then
                 local slide_dir = slide1 and -1 or 1
 
-                --check if this is initial contact with diagonal
                 if not p.was_on_diagonal then
-                        --first contact: handle opposite direction movement
                         if p.dx != 0 and sgn(p.dx) != sgn(slide_dir) then
-                                --moving opposite to slide direction: reset momentum
                                 reset_all_momentum()
                         end
                 end
 
-                --apply gravity to both axes for synchronized 45-degree slide
                 if slide1 then
-                        --slide left (flag 1: top-right to bottom-left)
                         p.dx = p.dx - gravity
                 else
-                        --slide right (flag 2: top-left to bottom-right)
                         p.dx = p.dx + gravity
                 end
-                p.dy = p.dy + gravity  --match vertical to horizontal movement
+                p.dy = p.dy + gravity
 
-                --CRITICAL: Force synchronization of speeds to maintain diagonal slide
-                --This prevents falling through when speeds desynchronize
-                local target_speed = min(abs(p.dy), 2.5)  --use dy as reference, capped at 2.5
-                p.dx = slide_dir * target_speed  --force dx to match dy magnitude
-                p.dy = abs(target_speed)  --ensure dy is positive and matches
+                --force dx/dy sync to prevent falling through diagonals
+                local target_speed = min(abs(p.dy), 2.5)
+                p.dx = slide_dir * target_speed
+                p.dy = abs(target_speed)
 
-                --limit diagonal slide speed to prevent skipping collision
+                --limit diagonal speed to prevent collision skipping
                 p.dx = mid(-2.5, p.dx, 2.5)
                 p.dy = mid(0, p.dy, 2.5)
 
-                --reset ice sliding state when on diagonal
                 p.ice_slide_speed = 0
                 p.ice_acc_timer = 0
-                --maintain hard fall state while sliding
-                p.lying = true
-                p.smash = true
-                p.grounded = false  --player is sliding, not grounded
+
+                --only go into lying/smashing state if moving fast enough
+                local total_speed = abs(p.dx) + abs(p.dy)
+                local lying_threshold = 2.0  --threshold for lying down state
+
+                if total_speed >= lying_threshold then
+                        p.lying = true
+                        p.smash = true
+                else
+                        p.lying = false
+                        p.smash = false
+                        p.falling = true  --gentle falling state instead
+                end
+
+                p.grounded = false
         else
-                --not on diagonal: normal gravity only to dy
-                p.dy = p.dy + gravity
+                if not hit_ceiling then
+                        p.dy = p.dy + gravity
+                end
         end
+
+        local hit_ceiling = false
 
         if collide_map(p,"down",7) then
-                p.dx=p.dx*friciton
+                p.dx=p.dx*friction
         end
 
-        --hard fall
         if p.dy>=p.max_dy then
                 p.lying=true
                 p.smash=true
                 p.landing=false
         end
     
-        --check collision up/down
         if p.dy>0 then
                 p.falling=true
                 p.grounded=false
@@ -85,50 +80,7 @@ function p_update()
                         p.dy=limit_speed(p.dy,p.max_slide)
                 end
 
-                if collide_map(p,"down",0) then
-                        --solid support diagonal collision check
-                        local left_x = p.x + p.hb_x_off
-                        local check_y = p.y + p.hb_y_off + p.hb_h + 1
-                        local tile_y = flr(check_y / 8)
-
-                        --check if player has solid ground support
-                        local has_solid_support = false
-                        for pixel_x = 0, 5 do  --check each pixel of 6-pixel hitbox
-                                local check_x = left_x + pixel_x
-                                local tile_x = flr(check_x / 8)
-                                local tile = mget(tile_x, tile_y)
-
-                                --count as solid if flag 0 AND not diagonal (flags 1,2)
-                                if fget(tile, 0) and not (fget(tile, 1) or fget(tile, 2)) then
-                                        has_solid_support = true
-                                        break
-                                end
-                        end
-
-                        if has_solid_support then
-                                --has solid support - can stand normally
-                                --continue with standard grounding logic
-                        else
-                                --no solid support - check if over diagonal to start sliding
-                                local over_diagonal = false
-                                for pixel_x = 0, 5 do
-                                        local check_x = left_x + pixel_x
-                                        local tile_x = flr(check_x / 8)
-                                        local tile = mget(tile_x, tile_y)
-                                        if fget(tile, 1) or fget(tile, 2) then
-                                                over_diagonal = true
-                                                break
-                                        end
-                                end
-
-                                if over_diagonal then
-                                        --start sliding - no solid support AND over diagonal
-                                        return
-                                end
-                                --otherwise continue with normal fall/air logic
-                        end
-
-                        --standard snapping for all tiles
+                if collide_map_respect_diagonals(p,"down",0) then
                         p.y=p.y-(((p.y+p.h+1)%8)-1)
 
                         if not slide1 and not slide2 then
@@ -146,19 +98,17 @@ function p_update()
                                 p.grounded=true
                                 p.hit=false
                                 p.dy=0
-                                p.air_moved=false  --reset air movement flag on landing
+                                p.air_moved=false
 
-                                --preserve momentum when landing on ice (only if significant movement)
+                                --preserve momentum when landing on ice
                                 if on_ice(p) then
-                                        if abs(p.dx) > physics_config.ice_slide_threshold then
+                                        if abs(p.dx) > ice_thresh then
                                                 p.ice_slide_speed = p.dx
                                         else
                                                 p.ice_slide_speed = 0
                                         end
-                                        --reset acceleration timer for fresh start
                                         p.ice_acc_timer = 0
                                 elseif p.was_on_ice then
-                                        --transitioning from ice to normal ground
                                         p.ice_slide_speed = 0
                                         p.ice_acc_timer = 0
                                 end
@@ -169,28 +119,24 @@ function p_update()
                 if collide_map(p,"up",0)
                 or collide_map(p,"up",3)
                 or collide_map(p,"up",4) then
-                        p.dy=0
-                end		
+                        p.dy=p.dy*bounce_factor
+                        hit_ceiling = true
+                end
         end
 
---check collision left/right
         if p.dx<0 then
                 handle_speed(slide1, slide2)
 
                 if collide_map(p,"left",0) then
                         if p.grounded then
                                 p.dx=0
-                                --reset ice sliding state when hitting wall
                                 p.ice_slide_speed = 0
                                 p.ice_acc_timer = 0
 
-                                --find the actual wall edge we're colliding with
-                                --check progressively closer until we find the exact collision point
                                 local left_edge = p.x + p.hb_x_off
                                 local found_wall = false
                                 local wall_x = 0
 
-                                --scan from current position leftward to find wall edge
                                 for check_offset = 0, 4 do
                                         local check_x = left_edge - check_offset
                                         local check_y = p.y + p.hb_y_off + (p.hb_h or p.h)/2
@@ -198,45 +144,38 @@ function p_update()
                                         local tile_y = flr(check_y / 8)
                                         local tile_id = mget(tile_x, tile_y)
 
-                                        --check for collision at this position
                                         if fget(tile_id, 0) or (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 then
                                                 found_wall = true
-                                                --custom snapping for different tile types
+                                                --custom snapping for column/row tiles
                                                 if tile_id == 119 or tile_id == 37 then
-                                                        --left column tile: snap to right edge of the column (x=1)
                                                         wall_x = tile_x * 8 + 1
                                                 elseif tile_id == 118 or tile_id == 36 then
-                                                        --right column tile: snap to left edge of the column (x=7)
                                                         wall_x = tile_x * 8 + 7
                                                 elseif tile_id == 120 or tile_id == 121 then
-                                                        --top row tiles: just stop, no snapping
                                                         return
                                                 else
-                                                        --standard tiles: right edge of tile
                                                         wall_x = (tile_x + 1) * 8
                                                 end
                                                 break
                                         end
                                 end
 
-                                --snap player to wall edge if we found it
                                 if found_wall then
                                         p.x = wall_x - p.hb_x_off
                                 end
                         else
                                 sfx(-1,1)
                                 sfx(2,1)
-                                --reset ice sliding state when bouncing off wall
                                 p.ice_slide_speed = 0
                                 p.ice_acc_timer = 0
-                                --calculate wind contribution for cushioning
+                                --wind cushioning
                                 local wind_contribution = calculate_wind_contribution()
-                                --cushion bounce if wind is pushing into wall
-                                if wind_contribution < 0 then --wind blowing left, same as movement
-                                        p.dx = -1 * (p.dx - wind_contribution) * physics_config.bounce_factor
+                                if wind_contribution < 0 then
+                                        p.dx = -1 * (p.dx - wind_contribution) * bounce_factor
                                 else
-                                        p.dx = -1 * p.dx * physics_config.bounce_factor
+                                        p.dx = -1 * p.dx * bounce_factor
                                 end
+                                p.dy = p.dy * 0.8
                                 p.hit=true
                         end
                 end
@@ -247,17 +186,13 @@ function p_update()
                 if collide_map(p,"right",0) then
                         if p.grounded then
                                 p.dx=0
-                                --reset ice sliding state when hitting wall
                                 p.ice_slide_speed = 0
                                 p.ice_acc_timer = 0
 
-                                --find the actual wall edge we're colliding with
-                                --check progressively closer until we find the exact collision point
                                 local right_edge = p.x + p.hb_x_off + p.hb_w
                                 local found_wall = false
                                 local wall_x = 0
 
-                                --scan from current position rightward to find wall edge
                                 for check_offset = 0, 4 do
                                         local check_x = right_edge + check_offset
                                         local check_y = p.y + p.hb_y_off + (p.hb_h or p.h)/2
@@ -265,45 +200,38 @@ function p_update()
                                         local tile_y = flr(check_y / 8)
                                         local tile_id = mget(tile_x, tile_y)
 
-                                        --check for collision at this position
                                         if fget(tile_id, 0) or (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 then
                                                 found_wall = true
-                                                --custom snapping for different tile types
+                                                --custom snapping for column/row tiles
                                                 if tile_id == 118 or tile_id == 36 then
-                                                        --right column tile: snap to left edge of the column (x=7)
                                                         wall_x = tile_x * 8 + 7
                                                 elseif tile_id == 119 or tile_id == 37 then
-                                                        --left column tile: snap to right edge (x=1)
                                                         wall_x = tile_x * 8 + 1
                                                 elseif tile_id == 120 or tile_id == 121 then
-                                                        --top row tiles: just stop, no snapping
                                                         return
                                                 else
-                                                        --standard tiles: left edge of tile
                                                         wall_x = tile_x * 8
                                                 end
                                                 break
                                         end
                                 end
 
-                                --snap player to wall edge if we found it
                                 if found_wall then
                                         p.x = wall_x - p.hb_w - p.hb_x_off
                                 end
                         else
                                 sfx(-1,1)
                                 sfx(2,1)
-                                --reset ice sliding state when bouncing off wall
                                 p.ice_slide_speed = 0
                                 p.ice_acc_timer = 0
-                                --calculate wind contribution for cushioning
+                                --wind cushioning
                                 local wind_contribution = calculate_wind_contribution()
-                                --cushion bounce if wind is pushing into wall
-                                if wind_contribution > 0 then --wind blowing right, same as movement
-                                        p.dx = -1 * (p.dx - wind_contribution) * physics_config.bounce_factor
+                                if wind_contribution > 0 then
+                                        p.dx = -1 * (p.dx - wind_contribution) * bounce_factor
                                 else
-                                        p.dx = -1 * p.dx * physics_config.bounce_factor
+                                        p.dx = -1 * p.dx * bounce_factor
                                 end
+                                p.dy = p.dy * 0.8
                                 p.hit=true
                         end
                 end
@@ -311,42 +239,37 @@ function p_update()
         end
 
         --limit movement per frame to prevent collision skipping
-        local max_frame_movement = 4  --pixels per frame
-        p.dx = mid(-max_frame_movement, p.dx, max_frame_movement)
-        p.dy = mid(-max_frame_movement, p.dy, max_frame_movement)
+        local collision_safe_limit = 7.5
+        if abs(p.dx) > collision_safe_limit then
+            p.dx = sgn(p.dx) * collision_safe_limit
+        end
+        if abs(p.dy) > collision_safe_limit then
+            p.dy = sgn(p.dy) * collision_safe_limit
+        end
 
         p.x=p.x+p.dx
         p.y=p.y+p.dy
 
-        --update facing direction based on velocity
         if p.dx < -0.1 then
-                p.flp = true  --face left when moving left
+                p.flp = true
         elseif p.dx > 0.1 then
-                p.flp = false --face right when moving right
+                p.flp = false
         end
-        --keep current facing if velocity is near zero
 
-        --track ice state for next frame
         p.was_on_ice = on_ice(p)
-
-        --track diagonal state for next frame
         p.was_on_diagonal = slide1 or slide2
 
-        --clear lying state when stopped after diagonal slide
         if p.lying and p.grounded and abs(p.dx) < 0.1 then
                 p.lying = false
         end
 
-        --reset ice state when leaving ground (but preserve for jump calculation)
         if not p.grounded then
-                --only reset if we've already used the ice speed for jumping
                 if p.air_moved then
                         p.ice_slide_speed = 0
                 end
                 p.ice_acc_timer = 0
         end
 
-        --reset diagonal state when grounded (not sliding)
         if p.grounded then
                 p.was_on_diagonal = false
                 p.diagonal_started = false
@@ -360,28 +283,22 @@ end
 
 function stop_running()
         if p.grounded and not p.running then
-                --on ice, preserve sliding momentum
-                if on_ice(p) and abs(p.ice_slide_speed) > physics_config.ice_slide_threshold then
+                if on_ice(p) and abs(p.ice_slide_speed) > ice_thresh then
                         p.dx = p.ice_slide_speed
                 else
-                        --preserve ground wind effect when stopping
+                        p.dx = p.dx * friction
                         local ground_wind_force = calculate_ground_wind_force()
-                        p.dx = ground_wind_force
+                        p.dx = p.dx + ground_wind_force
                 end
         end
 end
 
 function handle_speed(slide1, slide2)
-        --use cached wind level check
-        local max_speed = has_wind_this_level and 4.5 or p.max_dx --allow higher speed in wind levels
+        local max_speed = has_wind_this_level and 4.5 or p.max_dx
 
         if not slide1 and not slide2 then
-                if  p.running then
-                        if (btn(❎)) then
-                                p.dx=limit_speed(p.dx,p.max_walk_dx/2)
-                        else
-                                p.dx=limit_speed(p.dx,p.max_walk_dx)
-                        end
+                if p.running then
+                        p.dx=limit_speed(p.dx,p.max_walk_dx)
                 else
                         p.dx=limit_speed(p.dx,max_speed)
                 end
@@ -394,7 +311,7 @@ function calculate_wind_contribution()
         if not has_wind_this_level then
                 return 0
         end
-        return wind_direction * wind_strength * weather_config.wind.player_force
+        return wind_direction * wind_strength * wind_player_force
 end
 
 function calculate_ground_wind_force()
@@ -402,17 +319,17 @@ function calculate_ground_wind_force()
                 return 0
         end
 
-        --check if player is against a wall in the direction of wind
+        --check if player blocked by wall
         local blocked_by_wall = false
         if wind_direction < 0 and collide_map(p, "left", 0) then
-                blocked_by_wall = true  --wind blowing left but wall on left
+                blocked_by_wall = true
         elseif wind_direction > 0 and collide_map(p, "right", 0) then
-                blocked_by_wall = true  --wind blowing right but wall on right
+                blocked_by_wall = true
         end
 
         if blocked_by_wall then
                 return 0
         end
 
-        return wind_direction * wind_strength * p.ground_wind_ramp * weather_config.wind.ground_force
+        return wind_direction * wind_strength * p.ground_wind_ramp * wind_ground_force
 end

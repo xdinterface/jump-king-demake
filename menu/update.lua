@@ -8,7 +8,22 @@ function update_menu()
     if btnp(⬆️) and menu_pos > 1 then menu_pos = menu_pos - 1 end
     
     local menu_actions = {
-        function() if btnp(🅾️) then set_lvl(); _update, _draw = update_game, draw_game end end,
+        function()
+            if btnp(🅾️) then
+                set_lvl()
+                frames = 0
+                seconds = 0
+                minutes = 0
+                hours = 0
+                jump_counter = 0
+                fall_counter = 0
+                current_level_column = flr(p.x / 128)
+                cam_x = current_level_column * 128
+                cam_y = flr(p.y / 128) * 128
+                camera(cam_x, cam_y)
+                _update, _draw = update_game, draw_game
+            end
+        end,
         function() 
             if btnp(⬅️) or btnp(➡️) or btnp(🅾️) then
                 game_music = not game_music

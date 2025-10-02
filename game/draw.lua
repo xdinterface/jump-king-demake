@@ -9,6 +9,11 @@ function draw_game()
 	map(0, 0)
 	spr(p.sp, p.x, p.y, 1, 1, p.flp)
 
+	--draw princess in final level
+	if current_lvl == 32 then
+		spr(princess_sprite, princess_x, princess_y, 1, 1, false)
+	end
+
 	palt()
 
 	if show_time then
@@ -49,7 +54,7 @@ function draw_game()
 
 			local ground_wind_force = 0
 			if p.grounded and has_snow_wind and not in_deep_snow(p) then
-				ground_wind_force = wind_direction * wind_strength * p.ground_wind_ramp * weather_config.wind.ground_force
+				ground_wind_force = wind_direction * wind_strength * p.ground_wind_ramp * wind_ground_force
 			end
 
 			add(debug_info, "wind_str: " .. tostr(wind_strength))
@@ -70,9 +75,11 @@ function draw_game()
 
 		--world debug
 		if debug_world then
-			local world_height = get_world_height(p.x, p.y)
-			add(debug_info, "w_height: " .. tostr(world_height))
-			add(debug_info, "max_wh: " .. tostr(max_world_height_reached))
+			local tile_y = pixel_to_tile(p.y)
+			add(debug_info, "tile_y: " .. tostr(tile_y))
+			if min_tile_y_reached then
+				add(debug_info, "min_ty: " .. tostr(min_tile_y_reached))
+			end
 		end
 
 		--draw all debug info

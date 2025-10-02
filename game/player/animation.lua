@@ -10,7 +10,7 @@ function p_animate()
         elseif ((btn(⬅️) or btn(➡️)) or p.ice_sliding)
         and p.grounded
         and not p.crouching then
-                if time()-p.anim>physics_config.anim_rate then
+                if time()-p.anim>anim_rate then
                         p.anim=time()
                         p.sp=p.sp+1
                         if p.sp>5 then

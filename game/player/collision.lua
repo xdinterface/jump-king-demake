@@ -1,26 +1,57 @@
-function is_point_in_custom_tile(px, py, tile_x, tile_y, tile_id)
-	--check if a single point is within the custom tile's collision area
-	--tile coords are already in tile units, px/py are in pixels
+function is_point_on_diagonal_slope(px, py, tile_x, tile_y, flag)
 	local tile_px = tile_x * 8
 	local tile_py = tile_y * 8
-
-	--convert point to relative position within tile
 	local rel_x = px - tile_px
 	local rel_y = py - tile_py
 
-	--check if point is outside tile bounds entirely
+	if rel_x < 0 or rel_x >= 8 or rel_y < 0 or rel_y >= 8 then
+		return false
+	end
+
+	if flag == 1 then
+		-- Top-left to bottom-right (\): custom hitbox pattern
+		if rel_y == 7 then
+			return true  -- Bottom row all solid
+		elseif rel_y == 0 then
+			return rel_x == 0  -- Top row only x=0
+		else
+			return rel_x <= rel_y  -- Standard diagonal for other rows
+		end
+	elseif flag == 2 then
+		-- Top-right to bottom-left (/): custom hitbox pattern (mirrored)
+		if rel_y == 7 then
+			return true  -- Bottom row all solid
+		elseif rel_y == 0 then
+			return rel_x == 7  -- Top row only x=7
+		else
+			return rel_x >= (7 - rel_y)  -- Standard diagonal for other rows
+		end
+	elseif flag == 3 then
+		-- Bottom-left to top-right (/): exact slope for upward collision only
+		return rel_y <= (7 - rel_x)
+	elseif flag == 4 then
+		-- Bottom-right to top-left (\): exact slope for upward collision only
+		return rel_y <= rel_x
+	end
+
+	return false
+end
+
+function is_point_in_custom_tile(px, py, tile_x, tile_y, tile_id)
+	local tile_px = tile_x * 8
+	local tile_py = tile_y * 8
+	local rel_x = px - tile_px
+	local rel_y = py - tile_py
+
 	if rel_x < 0 or rel_x >= 8 or rel_y < 0 or rel_y >= 8 then
 		return false
 	end
 
 	if tile_id == 118 or tile_id == 36 then
-		--rightmost column (x=7) - full height collision
 		return rel_x >= 7
 	elseif tile_id == 119 or tile_id == 37 then
-		--leftmost column (x=0) - full height collision
 		return rel_x < 1
 	elseif tile_id == 120 or tile_id == 121 then
-		--only top 2 rows (y=0-1, 2 pixels high)
 		return rel_y < 2
 	end
 
@@ -33,6 +64,13 @@ function collide_map(obj, aim, flag)
 	local y = obj.y + (obj.hb_y_off or 0)
 	local w = obj.hb_w or obj.w
 	local h = obj.hb_h or obj.h
+
+	--check right edge boundary (invisible wall past tile x=127)
+	if aim == "right" and flag == 0 then
+		if x + w >= 1024 then
+			return true
+		end
+	end
 
 	local x1 = 0
 	local x2 = 0
@@ -69,9 +107,9 @@ function collide_map(obj, aim, flag)
 		y1 = y + h + 1
 		y2 = y + h + 1
 	elseif aim == "slide" then
-		x1 = x + 1
-		x2 = x + w - 2
-		y1 = y + 1
+		x1 = x
+		x2 = x + w - 1
+		y1 = y
 		y2 = y + h - 1
 	end
 
@@ -133,14 +171,34 @@ function collide_map(obj, aim, flag)
 			end
 		end
 		return false
-	elseif flag == 1 then
-		return fget(mget(x1, y1), flag) or fget(mget(x1, y2), flag) or fget(mget(x2, y1), flag)
-	elseif flag == 2 then
-		return fget(mget(x1, y1), flag) or fget(mget(x2, y1), flag) or fget(mget(x2, y2), flag)
-	elseif flag == 3 then
-		return fget(mget(x1, y1), flag) or fget(mget(x1, y2), flag) or fget(mget(x2, y2), flag)
-	elseif flag == 4 then
-		return fget(mget(x1, y2), flag) or fget(mget(x2, y1), flag) or fget(mget(x2, y2), flag)
+	elseif flag >= 1 and flag <= 4 then
+		-- Pixel-perfect diagonal collision detection
+		-- Convert tile coordinates back to pixels
+		local px1, py1 = x1 * 8, y1 * 8
+		local px2, py2 = x2 * 8, y2 * 8
+
+		local corners = {
+			{px1, py1},
+			{px1, py2},
+			{px2, py1},
+			{px2, py2}
+		}
+
+		for i = 1, #corners do
+			local px, py = corners[i][1], corners[i][2]
+			local tile_x = flr(px / 8)
+			local tile_y = flr(py / 8)
+			local tile = mget(tile_x, tile_y)
+
+			if fget(tile, flag) then
+				-- Check if point is actually on the diagonal slope
+				if is_point_on_diagonal_slope(px, py, tile_x, tile_y, flag) then
+					return true
+				end
+			end
+		end
+
+		return false
 	end
 end
 
@@ -201,6 +259,60 @@ function on_ice(obj)
 		end
 	end
 	return false
+end
+
+function collide_map_respect_diagonals(obj, aim, flag)
+	if aim != "down" or flag != 0 then
+		return collide_map(obj, aim, flag)
+	end
+
+	--use hitbox properties if available, otherwise fall back to sprite dimensions
+	local x = obj.x + (obj.hb_x_off or 0)
+	local y = obj.y + (obj.hb_y_off or 0)
+	local w = obj.hb_w or obj.w
+	local h = obj.hb_h or obj.h
+
+	--check each pixel position in the player's bottom edge
+	local left_x = x
+	local check_y = y + h + 1  --one pixel below player
+	local tile_y = flr(check_y / 8)
+
+	local has_valid_ground = false
+
+	for pixel_x = 0, w - 1 do
+		local check_x = left_x + pixel_x
+		local tile_x = flr(check_x / 8)
+		local ground_tile = mget(tile_x, tile_y)
+
+		--check if this position has solid ground
+		if fget(ground_tile, 0) then
+			--check if there's a diagonal tile at the same position that would block access
+			local player_tile_y = flr((y + h) / 8)  --player's bottom edge tile
+			local diagonal_tile = mget(tile_x, player_tile_y)
+
+			local blocked_by_diagonal = false
+
+			--check if diagonal tile blocks access to the solid below
+			if fget(diagonal_tile, 1) or fget(diagonal_tile, 2) then
+				--get the exact pixel position within the diagonal tile
+				local rel_x = check_x % 8
+				local rel_y = (y + h) % 8
+
+				--check if this pixel position is solid in the diagonal
+				if is_point_on_diagonal_slope(check_x, y + h, tile_x, player_tile_y, fget(diagonal_tile, 1) and 1 or 2) then
+					blocked_by_diagonal = true
+				end
+			end
+
+			--only count as valid ground if not blocked by diagonal
+			if not blocked_by_diagonal then
+				has_valid_ground = true
+				break
+			end
+		end
+	end
+
+	return has_valid_ground
 end
 
 
