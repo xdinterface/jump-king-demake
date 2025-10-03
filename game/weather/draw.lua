@@ -7,24 +7,36 @@ function draw_clouds()
 
     if has_snow then return end
 
+    --get current background color (simplified lookup)
+    local bg_color = get_bg_color_at(p.x, p.y)
+    local cloud_color = bg_to_cloud[bg_color]
+
+    if not cloud_color then return end
+
     foreach(clouds, function(c)
-        local cloud_zone = get_current_zone(c.x, c.y)
-        local cloud_color = cloud_zone and cloud_zone.cloud_color or 13
-
-        if not cloud_color then return end
-
         local cloud_x = c.x + cam_x
         local cloud_y = c.y + cam_y
 
-        rectfill(cloud_x + 4, cloud_y + 2, cloud_x + c.adj_w - 4, cloud_y + c.cloud_h - 2, cloud_color)
-
-        if c.cloud_h > 4 then
-            rectfill(cloud_x + 2, cloud_y + 3, cloud_x + c.adj_w - 2, cloud_y + c.cloud_h - 3, cloud_color)
-        end
-        if c.cloud_h > 3 then
-            rectfill(cloud_x + 6, cloud_y + 1, cloud_x + c.adj_w - 6, cloud_y + c.cloud_h - 1, cloud_color)
-        end
+        --simplified cloud shape: 2 overlapping rectangles
+        rectfill(cloud_x+2, cloud_y+1, cloud_x+c.w-2, cloud_y+c.h-1, cloud_color)
+        rectfill(cloud_x, cloud_y+2, cloud_x+c.w, cloud_y+c.h-2, cloud_color)
     end)
+end
+
+function get_bg_color_at(x, y)
+    --simplified bg color lookup for cloud coloring
+    local tile_x = flr(x/8)
+    local tile_y = flr(y/8)
+
+    --check custom rectangles first (mansion overlays)
+    for rect in all(custom_bg_rects) do
+        if tile_x >= rect.x_start and tile_x <= rect.x_end and
+           tile_y <= rect.y_start and tile_y >= rect.y_end then
+            return rect.bg_color
+        end
+    end
+
+    return 1  --default background
 end
 
 

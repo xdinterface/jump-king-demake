@@ -6,6 +6,7 @@ function draw_game()
 	draw_rectangles()
 	palt(14, true)
 	palt(0, false)
+
 	map(0, 0)
 	spr(p.sp, p.x, p.y, 1, 1, p.flp)
 
@@ -20,9 +21,10 @@ function draw_game()
 		draw_time()
 	end
 
-	
+
 	--draw snow last so it's in front of everything
 	draw_snow()
+
 end
 
 function draw_time()

@@ -39,7 +39,7 @@ function _init()
 
     --clouds
     cloud_count = 8
-    cloud_spd_min = 0.06
+    cloud_spd_min = 0.04
     cloud_spd_max = 0.2
     cloud_size_min = 32
     cloud_size_max = 64
@@ -109,28 +109,7 @@ function _init()
     }
 
     --clouds
-    clouds = {}
-    local cloud_layers = {20, 45, 70}
-    for i=0,cloud_count do
-        local layer = flr(rnd(3)) + 1
-        local h_mult = 0.7 + rnd(0.8)
-        local w = cloud_size_min+rnd(cloud_size_max-cloud_size_min)
-        local cloud_h = flr(6 * h_mult)
-        local w_adjust = (h_mult > 1.2) and -4 or 0
-        local adj_w = w + w_adjust
-
-        clouds[i]={
-            x=rnd(screen_size),
-            y=cloud_layers[layer] + rnd(12) - 6,
-            layer=layer,
-            spd=cloud_spd_min+rnd(cloud_spd_max-cloud_spd_min),
-            w=w,
-            cloud_w=w,
-            cloud_h=cloud_h,
-            adj_w=adj_w,
-            h_mult=h_mult
-        }
-    end
+    reset_clouds()
 
     menu_pos=1
     blink_c=7
@@ -191,6 +170,7 @@ function _init()
     player_wind_ramp = 0
     player_wind_timer = 0
 
+
     --background progress tracking
     min_tile_y_reached = nil  -- tracks highest point reached (lowest y value)
 
@@ -240,6 +220,33 @@ function _init()
     transition_princess_y = 0
 
     custom_bg_rects = generate_bg_rectangles()
+
+    --background to cloud color mapping
+    bg_to_cloud = {}
+    bg_to_cloud[0] = nil  --sewers: no clouds
+    bg_to_cloud[1] = 13   --snow/iceland: white clouds
+    bg_to_cloud[2] = 6    --mansions: dark gray
+    bg_to_cloud[6] = 7    --town: light gray
+    bg_to_cloud[13] = 6   --forest/guard/church: dark gray
+    bg_to_cloud[15] = 9   --tower: orange
+end
+
+function reset_clouds()
+    clouds = {}
+    local cloud_layers = {20, 45, 70}
+    for i=0,cloud_count do
+        local layer = flr(rnd(3)) + 1
+        local h = 4 + flr(rnd(3))  --height between 4-6
+        local w = cloud_size_min+rnd(cloud_size_max-cloud_size_min)
+
+        clouds[i]={
+            x=rnd(screen_size),
+            y=cloud_layers[layer] + rnd(12) - 6,
+            spd=cloud_spd_min+rnd(cloud_spd_max-cloud_spd_min),
+            w=w,
+            h=h
+        }
+    end
 end
 
 

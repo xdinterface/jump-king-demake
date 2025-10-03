@@ -3,8 +3,11 @@ function p_update()
 
         p_movement()
 
+        local hit_ceiling = false
         local slide1 = collide_map(p, "slide", 1)
         local slide2 = collide_map(p, "slide", 2)
+        local slide3 = collide_map(p, "slide", 3)
+        local slide4 = collide_map(p, "slide", 4)
 
         if slide1 or slide2 then
                 local slide_dir = slide1 and -1 or 1
@@ -48,13 +51,62 @@ function p_update()
                 end
 
                 p.grounded = false
+        elseif slide3 or slide4 then
+                --upward diagonal handling
+                local slide_dir = slide3 and -1 or 1
+
+                --share momentum reset logic with flags 1&2
+                if not p.was_on_diagonal then
+                        if p.dx != 0 and sgn(p.dx) != sgn(slide_dir) then
+                                reset_all_momentum()
+                        end
+                end
+
+                --apply gravity to vertical only
+                p.dy = p.dy + gravity
+
+                --sync horizontal to vertical magnitude (maintaining 45° angle)
+                p.dx = slide_dir * abs(p.dy)
+
+                --share speed limiting with 1&2
+                p.dx = mid(-2.5, p.dx, 2.5)
+                p.dy = mid(-2.5, p.dy, 2.5)
+
+                --state management for upward diagonals
+                p.ice_slide_speed = 0
+                p.ice_acc_timer = 0
+
+                --upward diagonals should NOT automatically cause splat/slam
+                if p.was_on_diagonal then
+                        --continuing on diagonal, maintain current state
+                        p.splat = false
+                        p.slammed = false
+                else
+                        --just landed on diagonal - check fall speed
+                        if abs(p.dy) >= p.max_dy then
+                                p.splat = true
+                                p.slammed = true
+                        else
+                                p.splat = false
+                                p.slammed = false
+                        end
+                end
+
+                --key difference: player can be "grounded" on upward diagonals
+                if p.dy >= 0 then
+                        p.grounded = true
+                        p.falling = false
+                        p.jumping = false
+                else
+                        p.grounded = false
+                        p.jumping = true
+                        p.falling = false
+                end
         else
                 if not hit_ceiling then
                         p.dy = p.dy + gravity
                 end
         end
-
-        local hit_ceiling = false
 
         if collide_map(p,"down",7) then
                 p.dx=p.dx*friction
@@ -116,10 +168,11 @@ function p_update()
                 end
         elseif p.dy<0 then
                 p.jumping=true
-                if collide_map(p,"up",0)
-                or collide_map(p,"up",3)
-                or collide_map(p,"up",4) then
-                        p.dy=p.dy*bounce_factor
+                if collide_map(p,"up",0) then
+                        --stop upward movement and let gravity naturally take over
+                        p.dy = 0
+                        --reduce horizontal velocity like walls do
+                        p.dx = p.dx * bounce_factor
                         hit_ceiling = true
                 end
         end
@@ -257,7 +310,7 @@ function p_update()
         end
 
         p.was_on_ice = on_ice(p)
-        p.was_on_diagonal = slide1 or slide2
+        p.was_on_diagonal = slide1 or slide2 or slide3 or slide4
 
         if p.splat and p.grounded and abs(p.dx) < 0.1 then
                 p.splat = false

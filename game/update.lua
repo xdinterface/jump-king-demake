@@ -21,6 +21,7 @@ function update_game()
 		end
 	end
 
+
 	--animate princess if player is near
 	local px_tile = flr(p.x / 8)
 	if px_tile >= 118 and px_tile <= 127 and p.y < 100 then

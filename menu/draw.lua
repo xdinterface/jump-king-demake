@@ -14,5 +14,6 @@ function draw_menu()
 			print(item.text, 30, item.y, menu_pos == i and blink_c or 7)
 		end
 	end
+
 end
 

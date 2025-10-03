@@ -1,34 +1,9 @@
 
-function reset_clouds()
-    clouds = {}
-    local cloud_layers = {20, 45, 70}
-    for i=0,cloud_count do
-        local layer = flr(rnd(3)) + 1
-        local h_mult = 0.7 + rnd(0.8)
-        local w = cloud_size_min+rnd(cloud_size_max-cloud_size_min)
-        local cloud_h = flr(6 * h_mult)
-        local w_adjust = (h_mult > 1.2) and -4 or 0
-        local adj_w = w + w_adjust
-
-        clouds[i]={
-            x=rnd(screen_size),
-            y=cloud_layers[layer] + rnd(12) - 6,
-            layer=layer,
-            spd=cloud_spd_min+rnd(cloud_spd_max-cloud_spd_min),
-            w=w,
-            cloud_w=w,
-            cloud_h=cloud_h,
-            adj_w=adj_w,
-            h_mult=h_mult
-        }
-    end
-end
-
 function update_clouds()
     if not last_cloud_lvl then last_cloud_lvl = current_lvl end
     if current_lvl != last_cloud_lvl then
         last_cloud_lvl = current_lvl
-        reset_clouds()
+        reset_clouds()  --preserves immersion with new clouds per level
     end
 
     foreach(clouds, function(c)
