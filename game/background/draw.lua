@@ -73,7 +73,7 @@ function draw_background()
 
 	for rect in all(custom_bg_rects) do
 		local x_start = tile_to_pixel(rect.x_start)
-		local y_start = tile_to_pixel(rect.y_start)
+		local y_start = tile_to_pixel(rect.y_start) - 1
 		local x_end = tile_to_pixel(rect.x_end)
 		local y_end = tile_to_pixel(rect.y_end)
 

@@ -260,7 +260,7 @@ function generate_bg_rectangles()
         for col = 0, target_col do
             local col_start_x = col * 16
             local col_end_x = (col == target_col) and target_x or ((col + 1) * 16 - 1)
-            local y_start = (col_filled[col] == 64) and 63 or col_filled[col]
+            local y_start = (col_filled[col] == 64) and 64 or col_filled[col]
             local y_end = (col == target_col) and target_y or 0
 
             if y_start >= y_end then
