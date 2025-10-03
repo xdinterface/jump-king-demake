@@ -27,7 +27,9 @@ function draw_ending_transition()
  local pry=princess_y+(60-princess_y)*t
 
  palt(14,true)
+ palt(0,false)
  spr(p.sp,px,py,1,1,p.flp)
+ spr(15,px,py-1,1,1,p.flp)
  spr(princess_sprite,prx,pry)
  palt()
 end

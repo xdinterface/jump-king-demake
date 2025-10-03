@@ -6,15 +6,13 @@ function _init()
 
     --496,50 start
     --debug
-    debug_mode = true
-    debug_print = false
-    debug_coords = false
-    debug_level = true
-    debug_grounded = true
-    debug_wind = true
-    debug_snow = true
-    debug_world = false
-    debug_charge = true
+    debug = true
+
+    --initialize save data
+    cartdata("jumpking_demake")
+    best_time = dget(0)  --best time in total frames
+    run_count = dget(1)  --number of runs started
+    is_new_record = false  --flag for new record
 
     --physics
     gravity = 0.24
@@ -150,7 +148,7 @@ function _init()
     game_music=false
     show_time=true
     max_menu=0
-    init_lvl=16
+    init_lvl=1
     s=0
 
     
@@ -172,15 +170,6 @@ function _init()
     level_entry_time = 0  --time since entering current level
     
     --weather--
-    rain ={}
-    rain_areas = {
-        {x1=17, y1=0, x2=20, y2=3},    --area 1: bottom section
-        {x1=33, y1=37, x2=36, y2=63},   --area 2: vertical section
-        {x1=33, y1=35, x2=38, y2=36},   --area 3: small horizontal
-        {x1=33, y1=24, x2=39, y2=34}    --area 4: larger vertical
-    }
-    rain_count = 40
-    rain_active = false
     
     --snow
     snow = {}

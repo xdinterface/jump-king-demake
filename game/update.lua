@@ -43,7 +43,7 @@ function update_game()
 	--update background progress tracking
 	update_background_progress()
 
-	update_rain()
+	--update_rain()
 	update_clouds()
 	update_snow_wind()
 end

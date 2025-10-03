@@ -27,23 +27,6 @@ function draw_clouds()
     end)
 end
 
-function draw_rain()
-    if not rain_active then return end
-
-    -- Draw far/background rain first (lighter color)
-    for r in all(rain) do
-        if r.far then
-            line(r.x, r.y, r.x, r.y + r.len, 5)  -- color 5 (dark gray) for distant
-        end
-    end
-
-    -- Draw near/foreground rain on top (darker color)
-    for r in all(rain) do
-        if not r.far then
-            line(r.x, r.y, r.x, r.y + r.len, 6)  -- color 6 (light gray) for close
-        end
-    end
-end
 
 function draw_snow()
     local has_snow = in_levels(current_lvl, snow_only_levels) or in_levels(current_lvl, snow_wind_levels)

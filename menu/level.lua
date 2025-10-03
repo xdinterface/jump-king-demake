@@ -1,5 +1,5 @@
 function set_lvl()
-	local effective_lvl = debug_mode and init_lvl or 1
+	local effective_lvl = debug and init_lvl or 1
 	if effective_lvl == 1 then
 		p.x = 60
 		p.y = 496

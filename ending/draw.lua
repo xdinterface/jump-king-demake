@@ -1,5 +1,7 @@
 function draw_ending()
     camera(0, 0)
+    palt(14, true)   --make pink transparent
+    palt(0, false)  --make black opaque
     cls(0)
 
     if ending_phase == 1 then
@@ -8,10 +10,6 @@ function draw_ending()
         local col = get_fade_color(fade)
         print_centered("he made it to the top!", 55, col)
         print_centered("the prince has ascended!", 65, col)
-    elseif ending_phase >= 2 then
-        --keep showing the sentences
-        print_centered("he made it to the top!", 55, 7)
-        print_centered("the prince has ascended!", 65, 7)
     end
 
     if ending_phase == 2 then
@@ -42,12 +40,21 @@ function draw_ending()
         print_centered("jumps: " .. jump_counter, 60, 7)
         print_centered("falls: " .. fall_counter, 70, 7)
 
+        --show best time or new record
+        if is_new_record then
+            print_centered("new record!", 80, 10)
+        elseif best_time > 0 then
+            print_centered("best: " .. format_frames_to_time(best_time), 80, 6)
+        end
+
         --fade in continue prompt
         if phase_progress > 0 then
             local fade = min(phase_progress * 2, 1)  --fade in over 0.5s
-            print_centered("press any button to continue", 90, get_fade_color(fade))
+            print_centered("press any button to continue", 95, get_fade_color(fade))
         end
     end
+
+    palt()  --reset palette
 end
 
 function get_fade_color(fade)
@@ -72,7 +79,10 @@ end
 
 function format_time_with_ms()
     local total_frames = frames + (seconds * 30) + (minutes * 1800) + (hours * 108000)
+    return format_frames_to_time(total_frames)
+end
 
+function format_frames_to_time(total_frames)
     local ms = flr((total_frames % 30) * 33.33)
     local total_seconds = flr(total_frames / 30)
     local h = flr(total_seconds / 3600)

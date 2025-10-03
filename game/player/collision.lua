@@ -11,18 +11,14 @@ function is_point_on_diagonal_slope(px, py, tile_x, tile_y, flag)
 	if flag == 1 then
 		if rel_y == 7 then
 			return true
-		elseif rel_y == 0 then
-			return rel_x == 0
 		else
-			return rel_x <= rel_y
+			return rel_x >= (7 - rel_y)
 		end
 	elseif flag == 2 then
 		if rel_y == 7 then
 			return true
-		elseif rel_y == 0 then
-			return rel_x == 7
 		else
-			return rel_x >= (7 - rel_y)
+			return rel_x <= rel_y
 		end
 	elseif flag == 3 then
 		return rel_y <= (7 - rel_x)

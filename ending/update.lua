@@ -2,6 +2,16 @@ function update_ending()
     ending_timer = ending_timer + 1
     local phase_time = ending_timer / 30
 
+    --check for new record on first frame
+    if ending_timer == 1 then
+        local current_total = frames + (seconds * 30) + (minutes * 1800) + (hours * 108000)
+        if best_time == 0 or current_total < best_time then
+            is_new_record = true
+            best_time = current_total
+            dset(0, best_time)
+        end
+    end
+
     if phase_time < 4 then
         ending_phase = 1
         phase_progress = min(phase_time, 1)  --fade in during first second

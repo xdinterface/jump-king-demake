@@ -67,12 +67,6 @@ function draw_background()
 		return
 	end
 
-	if debug then
-		local current_zone = get_current_zone(p.x, p.y)
-		if current_zone then
-			print("zone_y:" .. current_zone.tile_y, cam_x, cam_y + 62, 7)
-		end
-	end
 
 	--default background
 	rectfill(cam_x, cam_y, cam_x + screen_size, cam_y + screen_size, 1)

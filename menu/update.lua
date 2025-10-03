@@ -2,7 +2,7 @@ function update_menu()
     update_menu_music()
     blink()
     
-    max_menu = debug_mode and 4 or 3
+    max_menu = debug and 4 or 3
 
     if btnp(⬇️) and menu_pos < max_menu then menu_pos = menu_pos + 1 end
     if btnp(⬆️) and menu_pos > 1 then menu_pos = menu_pos - 1 end
@@ -18,6 +18,9 @@ function update_menu()
                 jump_counter = 0
                 fall_counter = 0
                 timer_stopped = false
+                is_new_record = false
+                run_count = run_count + 1
+                dset(1, run_count)
                 current_level_column = flr(p.x / 128)
                 cam_x = current_level_column * 128
                 cam_y = flr(p.y / 128) * 128
@@ -33,7 +36,7 @@ function update_menu()
         end,
         function() if btnp(⬅️) or btnp(➡️) or btnp(🅾️) then show_time = not show_time end end,
         function()
-            if not debug_mode then return end
+            if not debug then return end
             if btnp(➡️) or btnp(🅾️) then
                 init_lvl = init_lvl < 32 and init_lvl + 1 or 1
                 set_lvl()
