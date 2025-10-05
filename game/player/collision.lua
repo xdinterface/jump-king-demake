@@ -39,12 +39,14 @@ function is_point_in_custom_tile(px, py, tile_x, tile_y, tile_id)
 		return false
 	end
 
-	if tile_id == 118 or tile_id == 36 then
-		return rel_x >= 7
-	elseif tile_id == 119 or tile_id == 37 then
-		return rel_x < 1
+	if tile_id == 118 or tile_id == 36 or tile_id == 48 then
+		return rel_x >= 6
+	elseif tile_id == 119 or tile_id == 37 or tile_id == 49 then
+		return rel_x < 2
 	elseif tile_id == 120 or tile_id == 121 then
 		return rel_y < 2
+	elseif tile_id == 110 then
+		return rel_y < 4
 	end
 
 	return false
@@ -134,7 +136,7 @@ function collide_map(obj, aim, flag)
 			local tile_id = mget(tx, ty)
 
 			--check if it's a custom hitbox tile
-			if (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 then
+			if (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 or tile_id == 48 or tile_id == 49 or tile_id == 110 then
 				if is_point_in_custom_tile(px, py, tx, ty, tile_id) then
 					return true
 				end
@@ -152,7 +154,7 @@ function collide_map(obj, aim, flag)
 
 			for tx = tile_x1, tile_x2 do
 				local tile_id = mget(tx, tile_y)
-				if (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 then
+				if (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 or tile_id == 48 or tile_id == 49 or tile_id == 110 then
 					--check horizontal span for narrow columns
 					for check_x = orig_x1, orig_x2 do
 						if is_point_in_custom_tile(check_x, orig_y1, tx, tile_y, tile_id) then
@@ -285,7 +287,12 @@ function collide_map_respect_diagonals(obj, aim, flag)
 		local ground_tile = mget(tile_x, tile_y)
 
 		--check if this position has solid ground
-		if fget(ground_tile, 0) then
+		local is_solid = fget(ground_tile, 0)
+		if not is_solid and ((ground_tile >= 118 and ground_tile <= 121) or ground_tile == 36 or ground_tile == 37 or ground_tile == 48 or ground_tile == 49 or ground_tile == 110) then
+			is_solid = is_point_in_custom_tile(check_x, check_y, tile_x, tile_y, ground_tile)
+		end
+
+		if is_solid then
 			--check if there's a diagonal tile at the same position that would block access
 			local player_tile_y = flr((y + h) / 8)  --player's bottom edge tile
 			local diagonal_tile = mget(tile_x, player_tile_y)

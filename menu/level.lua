@@ -52,8 +52,8 @@ function set_lvl()
 		p.x = 543
 		p.y = 496
 	elseif effective_lvl == 18 then
-		p.x = 587
-		p.y = 352
+		p.x = 592
+		p.y = 400
 	elseif effective_lvl == 19 then
 		p.x = 548
 		p.y = 232

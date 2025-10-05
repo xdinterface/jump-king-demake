@@ -197,13 +197,13 @@ function p_update()
                                         local tile_y = flr(check_y / 8)
                                         local tile_id = mget(tile_x, tile_y)
 
-                                        if fget(tile_id, 0) or (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 then
+                                        if fget(tile_id, 0) or (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 or tile_id == 48 or tile_id == 49 or tile_id == 110 then
                                                 found_wall = true
                                                 --custom snapping for column/row tiles
-                                                if tile_id == 119 or tile_id == 37 then
-                                                        wall_x = tile_x * 8 + 1
-                                                elseif tile_id == 118 or tile_id == 36 then
-                                                        wall_x = tile_x * 8 + 7
+                                                if tile_id == 119 or tile_id == 37 or tile_id == 49 then
+                                                        wall_x = tile_x * 8 + 2
+                                                elseif tile_id == 118 or tile_id == 36 or tile_id == 48 then
+                                                        wall_x = tile_x * 8 + 6
                                                 elseif tile_id == 120 or tile_id == 121 then
                                                         return
                                                 else
@@ -253,7 +253,7 @@ function p_update()
                                         local tile_y = flr(check_y / 8)
                                         local tile_id = mget(tile_x, tile_y)
 
-                                        if fget(tile_id, 0) or (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 then
+                                        if fget(tile_id, 0) or (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 or tile_id == 48 or tile_id == 49 or tile_id == 110 then
                                                 found_wall = true
                                                 --custom snapping for column/row tiles
                                                 if tile_id == 118 or tile_id == 36 then
