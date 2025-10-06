@@ -127,7 +127,7 @@ function _init()
     game_music=false
     show_time=true
     max_menu=0
-    init_lvl=18
+    init_lvl=26
     s=0
 
     
