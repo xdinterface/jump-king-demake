@@ -122,12 +122,10 @@ function p_update()
 
                         if not slide1 and not slide2 then
                                 if p.slammed then
-                                        sfx(-1,1)
                                         sfx(3,1)
                                         p.slammed=false
                                         fall_counter=fall_counter+1
                                 elseif p.landing then
-                                        sfx(-1,1)
                                         sfx(1,1)
                                         p.landing=false
                                 end
@@ -260,7 +258,6 @@ function calc_gwforce()
 end
 
 function wall_hit_sfx()
-        sfx(-1,1)
         sfx(2,1)
 end
 

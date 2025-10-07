@@ -24,7 +24,7 @@ function _init()
     charge_rate = 0.07
     anim_rate = 0.1
     bounce_factor = 0.6
-    slam_thresh = 4.6
+    slam_thresh = 5.4
 
     --wind/weather
     snow_count = 60
