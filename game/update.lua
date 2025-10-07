@@ -28,12 +28,13 @@ function update_game()
 		princess_anim_timer = princess_anim_timer + 1
 		if princess_anim_timer >= 15 then  --switch every 0.5s
 			princess_anim_timer = 0
-			if princess_sprite == 12 then
-				princess_sprite = 13
-			else
-				princess_sprite = 12
-			end
+			princess_sprite = princess_sprite == 12 and 13 or 12
 		end
+	end
+
+	--animate sprite in level 1
+	if current_lvl == 1 then
+		animate_sprite_at_pos()
 	end
 
 	p_update()
@@ -74,6 +75,14 @@ function update_background_progress()
 		min_tile_y_reached = current_tile_y
 	else
 		min_tile_y_reached = min(min_tile_y_reached, current_tile_y)
+	end
+end
+
+function animate_sprite_at_pos()
+	anim_sprite_timer = anim_sprite_timer + 1
+	if anim_sprite_timer >= 15 then
+		anim_sprite_timer = 0
+		anim_sprite_current = anim_sprite_current == 38 and 39 or 38
 	end
 end
 

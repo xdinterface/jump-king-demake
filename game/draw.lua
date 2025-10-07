@@ -9,6 +9,11 @@ function draw_game()
 
 	map(0, 0)
 
+	--draw animated sprite in level 1 at tile x6 y62 (behind player)
+	if current_lvl == 1 then
+		spr(anim_sprite_current, 48, 496, 1, 1, false)
+	end
+
 	spr(p.sp, p.x, p.y, 1, 1, p.flp)
 
 	--draw princess in final level

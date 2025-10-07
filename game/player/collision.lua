@@ -52,6 +52,10 @@ function is_point_in_custom_tile(px, py, tile_x, tile_y, tile_id)
 	return false
 end
 
+function is_custom_tile(tile_id)
+	return (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 or tile_id == 48 or tile_id == 49 or tile_id == 110
+end
+
 function collide_map(obj, aim, flag)
 	--use hitbox properties if available, otherwise fall back to sprite dimensions
 	local x = obj.x + (obj.hb_x_off or 0)
@@ -121,7 +125,7 @@ function collide_map(obj, aim, flag)
 		local orig_x2 = x2 * 8
 		local orig_y2 = y2 * 8
 
-		--check the four corner points (original system for standard tiles)
+		--check the four corner check_points (original system for standard tiles)
 		local corners = {
 			{x1, y1, orig_x1, orig_y1},
 			{x1, y2, orig_x1, orig_y2},
@@ -132,13 +136,16 @@ function collide_map(obj, aim, flag)
 		for i = 1, #corners do
 			local tx = flr(corners[i][1])
 			local ty = flr(corners[i][2])
-			local px = corners[i][3]  --use original pixel coordinates
-			local py = corners[i][4]
+			local tile_px = corners[i][3]  --use original pixel coordinates
+			local tile_py = corners[i][4]
 			local tile_id = mget(tx, ty)
 
 			--check if it's a custom hitbox tile
-			if (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 or tile_id == 48 or tile_id == 49 or tile_id == 110 then
-				if is_point_in_custom_tile(px, py, tx, ty, tile_id) then
+			if is_custom_tile(tile_id) then
+				--high-speed mode: treat thin platform tiles as full solid tiles
+				if aim == "down" and obj.dy and abs(obj.dy) > 4 and (tile_id == 110 or tile_id == 120 or tile_id == 121) then
+					return true  --treat thin platforms as solid blocks when falling fast
+				elseif is_point_in_custom_tile(tile_px, tile_py, tx, ty, tile_id) then
 					return true
 				end
 			elseif fget(tile_id, flag) then
@@ -158,13 +165,18 @@ function collide_map(obj, aim, flag)
 			for ty = tile_y1, tile_y2 do
 				for tx = tile_x1, tile_x2 do
 					local tile_id = mget(tx, ty)
-					if (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 or tile_id == 48 or tile_id == 49 or tile_id == 110 then
-						--check horizontal span for narrow columns
-						for check_x = orig_x1, orig_x2 do
-							--check each y position in the range
-							for check_y = orig_y1, orig_y2 do
-								if is_point_in_custom_tile(check_x, check_y, tx, ty, tile_id) then
-									return true
+					if is_custom_tile(tile_id) then
+						--high-speed mode: treat thin platform tiles as full solid tiles
+						if aim == "down" and obj.dy and abs(obj.dy) > 4 and (tile_id == 110 or tile_id == 120 or tile_id == 121) then
+							return true  --treat thin platforms as solid blocks when falling fast
+						else
+							--normal mode: check horizontal span for narrow columns
+							for check_x = orig_x1, orig_x2 do
+								--check each y position in the range
+								for check_y = orig_y1, orig_y2 do
+									if is_point_in_custom_tile(check_x, check_y, tx, ty, tile_id) then
+										return true
+									end
 								end
 							end
 						end
@@ -176,33 +188,33 @@ function collide_map(obj, aim, flag)
 	elseif flag >= 1 and flag <= 4 then
 		-- Precise diagonal collision detection
 		-- Convert tile coordinates back to pixels
-		local px1, py1 = x1 * 8, y1 * 8
-		local px2, py2 = x2 * 8, y2 * 8
+		local tile_px1, tile_py1 = x1 * 8, y1 * 8
+		local tile_px2, tile_py2 = x2 * 8, y2 * 8
 
-		-- Check multiple points along hitbox edges, not just corners
+		-- Check multiple check_points along hitbox edges, not just corners
 		local check_points = {}
 
 		-- Top and bottom edges
-		for px = px1, px2 do
-			add(check_points, {px, py1})  -- top edge
-			add(check_points, {px, py2})  -- bottom edge
+		for tile_px = tile_px1, tile_px2 do
+			add(check_points, {tile_px, tile_py1})  -- top edge
+			add(check_points, {tile_px, tile_py2})  -- bottom edge
 		end
 
 		-- Left and right edges
-		for py = py1, py2 do
-			add(check_points, {px1, py})  -- left edge
-			add(check_points, {px2, py})  -- right edge
+		for tile_py = tile_py1, tile_py2 do
+			add(check_points, {tile_px1, tile_py})  -- left edge
+			add(check_points, {tile_px2, tile_py})  -- right edge
 		end
 
 		for i = 1, #check_points do
-			local px, py = check_points[i][1], check_points[i][2]
-			local tile_x = flr(px / 8)
-			local tile_y = flr(py / 8)
+			local tile_px, tile_py = check_points[i][1], check_points[i][2]
+			local tile_x = flr(tile_px / 8)
+			local tile_y = flr(tile_py / 8)
 			local tile = mget(tile_x, tile_y)
 
 			if fget(tile, flag) then
 				-- Check if point is actually on the diagonal slope
-				if is_point_on_diagonal_slope(px, py, tile_x, tile_y, flag) then
+				if is_point_on_diagonal_slope(tile_px, tile_py, tile_x, tile_y, flag) then
 					return true
 				end
 			end
@@ -213,7 +225,7 @@ function collide_map(obj, aim, flag)
 end
 
 function in_deep_snow(obj)
-	--check if any part of player hitbox intersects with bottom 2px of flag 5 tiles
+	--check if any part of player hitbox intersects with bottom 2tile_px of flag 5 tiles
 	local x = obj.x + (obj.hb_x_off or 0)
 	local y = obj.y + (obj.hb_y_off or 0)
 	local w = obj.hb_w or obj.w
@@ -229,9 +241,9 @@ function in_deep_snow(obj)
 		for tx = tile_x1, tile_x2 do
 			local sprite_id = mget(tx, ty)
 			if fget(sprite_id, 5) then
-				--calculate deep snow area (bottom 2px of this tile)
+				--calculate deep snow area (bottom 2tile_px of this tile)
 				local tile_top = ty * 8
-				local snow_top = tile_top + 6  --bottom 2px start at pixel 6
+				local snow_top = tile_top + 6  --bottom 2tile_px start at pixel 6
 				local snow_bottom = tile_top + 8  --tile bottom
 				local tile_left = tx * 8
 				local tile_right = tile_left + 8
@@ -296,8 +308,14 @@ function collide_map_respect_diagonals(obj, aim, flag)
 
 		--check if this position has solid ground
 		local is_solid = fget(ground_tile, 0)
-		if not is_solid and ((ground_tile >= 118 and ground_tile <= 121) or ground_tile == 36 or ground_tile == 37 or ground_tile == 48 or ground_tile == 49 or ground_tile == 110) then
-			is_solid = is_point_in_custom_tile(check_x, check_y, tile_x, tile_y, ground_tile)
+		if not is_solid and is_custom_tile(ground_tile) then
+			--high-speed mode: treat thin platform tiles as full solid tiles
+			if obj.dy and abs(obj.dy) > 4 and (ground_tile == 110 or ground_tile == 120 or ground_tile == 121) then
+				is_solid = true  --treat thin platforms as solid blocks when falling fast
+			else
+				--normal mode: use precise custom tile collision zones
+				is_solid = is_point_in_custom_tile(check_x, check_y, tile_x, tile_y, ground_tile)
+			end
 		end
 
 		if is_solid then

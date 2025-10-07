@@ -24,6 +24,7 @@ function _init()
     charge_rate = 0.07
     anim_rate = 0.1
     bounce_factor = 0.6
+    slam_thresh = 4.6
 
     --wind/weather
     snow_count = 60
@@ -127,7 +128,7 @@ function _init()
     game_music=false
     show_time=true
     max_menu=0
-    init_lvl=26
+    init_lvl=7
     s=0
 
     
@@ -213,6 +214,10 @@ function _init()
     princess_y = 24   --tile y3 * 8
     princess_sprite = 11
     princess_anim_timer = 0
+
+    --animated sprite timer
+    anim_sprite_timer = 0
+    anim_sprite_current = 38
 
     --transition variables
     ending_transition_timer = 0

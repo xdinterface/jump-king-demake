@@ -46,7 +46,7 @@ function p_movement()
     end
 
     local wind_force = 0
-    local has_snow_wind = has_wind_this_level
+    local has_snow_wind = wind_level
 
     if has_snow_wind then
         if not p.grounded then
@@ -72,22 +72,16 @@ function p_movement()
 
     local move_dir = (btn(➡️) and 1 or 0) - (btn(⬅️) and 1 or 0)
     if move_dir != 0 and p.grounded then
-        p.flp = move_dir < 0
-        p.dir = true
-        --stand up from splat if trying to move
-        if p.splat then
-            p.splat = false
+        if move_dir < 0 then p.flp = true
+        elseif move_dir > 0 then p.flp = false
         end
+        p.dir = true
+        --player can still move while splatted but won't stand up automatically
         if not p.crouching then
             if is_on_ice then
                 if p.ice_slide_speed != 0 and sgn(move_dir) != sgn(p.ice_slide_speed) then
                     --opposite direction: faster decel
-                    p.ice_slide_speed = p.ice_slide_speed - sgn(p.ice_slide_speed) * ice_counter
-                    if abs(p.ice_slide_speed) < ice_thresh then
-                        p.ice_slide_speed = 0
-                        p.ice_acc_timer = 0
-                    end
-                    p.dx = p.ice_slide_speed
+                    update_ice_decel(ice_counter)
                 else
                     --ice acceleration with ramp-up
                     if p.ice_acc_timer == 0 then
@@ -112,16 +106,16 @@ function p_movement()
         p.running = false
         p.dir = false
         if is_on_ice and abs(p.ice_slide_speed) > ice_thresh then
-            p.ice_slide_speed = p.ice_slide_speed - sgn(p.ice_slide_speed) * ice_decel
-            if abs(p.ice_slide_speed) < ice_thresh then
-                p.ice_slide_speed = 0
-                p.ice_acc_timer = 0
-            end
-            p.dx = p.ice_slide_speed
+            update_ice_decel(ice_decel)
         end
     end
 
     p.jump_btn_held = btn(❎)
+
+    --stand up from splat by pressing any button
+    if p.splat and p.grounded and (btn(⬅️) or btn(➡️) or btn(❎) or btn(🅾️)) then
+        p.splat = false
+    end
 
     --crouch (can't while splat)
     if btn(❎)
@@ -131,12 +125,7 @@ function p_movement()
         p.crouching=true
 
         if is_on_ice and abs(p.ice_slide_speed) > ice_thresh then
-            p.ice_slide_speed = p.ice_slide_speed - sgn(p.ice_slide_speed) * ice_decel
-            if abs(p.ice_slide_speed) < ice_thresh then
-                p.ice_slide_speed = 0
-                p.ice_acc_timer = 0
-            end
-            p.dx = p.ice_slide_speed
+            update_ice_decel(ice_decel)
         end
 
         if time()-air_time > charge_rate then
@@ -156,20 +145,7 @@ function p_movement()
         end
         --auto-jump at max charge
         if p.boost >= p.boost_max then
-            sfx(0)
-            air_time=0
-            p.dy=p.dy-(p.boost+0.8)
-            p.boost=0
-            p.landing=true
-            p.jumping=true
-            p.grounded=false
-            p.crouching=false
-            p.running=false
-            jump_counter=jump_counter+1
-            --add ice velocity to jump
-            if is_on_ice and abs(p.ice_slide_speed) > ice_thresh then
-                p.dx = p.ice_slide_speed
-            end
+            execute_jump(move_dir, is_on_ice)
         end
     end
 
@@ -180,20 +156,7 @@ function p_movement()
 
     if not btn(❎)
     and p.crouching then
-        sfx(0)
-        air_time=0
-        p.dy=p.dy-(p.boost+0.8)
-        p.boost=0
-        p.landing=true
-        p.jumping=true
-        p.grounded=false
-        p.crouching=false
-        p.running=false
-        jump_counter=jump_counter+1
-        --add ice velocity to jump
-        if is_on_ice and abs(p.ice_slide_speed) > ice_thresh then
-            p.dx = p.ice_slide_speed
-        end
+        execute_jump(move_dir, is_on_ice)
     end
 
     --air movement (once per jump)
@@ -262,4 +225,30 @@ function p_movement()
         end
     end
 
+end
+
+function update_ice_decel(rate)
+    p.ice_slide_speed = p.ice_slide_speed - sgn(p.ice_slide_speed) * rate
+    if abs(p.ice_slide_speed) < ice_thresh then
+        p.ice_slide_speed = 0
+        p.ice_acc_timer = 0
+    end
+    p.dx = p.ice_slide_speed
+end
+
+function execute_jump(move_dir, is_on_ice)
+    sfx(0)
+    air_time=0
+    p.dy=p.dy-(p.boost+0.8)
+    p.boost=0
+    p.landing,p.jumping,p.grounded,p.crouching,p.running=true,true,false,false,false
+    jump_counter=jump_counter+1
+    --lock facing direction for jump
+    if move_dir < 0 then p.flp = true
+    elseif move_dir > 0 then p.flp = false
+    end
+    --add ice velocity to jump
+    if is_on_ice and abs(p.ice_slide_speed) > ice_thresh then
+        p.dx = p.ice_slide_speed
+    end
 end
