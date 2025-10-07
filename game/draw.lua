@@ -8,6 +8,7 @@ function draw_game()
 	palt(0, false)
 
 	map(0, 0)
+
 	spr(p.sp, p.x, p.y, 1, 1, p.flp)
 
 	--draw princess in final level
@@ -20,7 +21,6 @@ function draw_game()
 	if show_time then
 		draw_time()
 	end
-
 
 	--draw snow last so it's in front of everything
 	draw_snow()

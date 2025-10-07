@@ -17,9 +17,9 @@ function _init()
     --physics
     gravity = 0.24
     friction = 0.2
-    ice_decel = 0.08
-    ice_counter = 0.15
-    ice_ramp = 0.25
+    ice_decel = 0.1
+    ice_counter = 0.16
+    ice_ramp = 0.24
     ice_thresh = 0.08
     charge_rate = 0.07
     anim_rate = 0.1
@@ -200,6 +200,13 @@ function _init()
     ending_phase = 1
     phase_progress = 0
     timer_stopped = false
+
+    -- Position save/restore variables
+    saved_pos_x = nil
+    saved_pos_y = nil
+    o_button_press_time = 0
+    o_button_held = false
+    position_saved = false
 
     --princess variables
     princess_x = 984  --tile x123 * 8

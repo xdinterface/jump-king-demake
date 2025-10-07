@@ -44,7 +44,7 @@ function is_point_in_custom_tile(px, py, tile_x, tile_y, tile_id)
 	elseif tile_id == 119 or tile_id == 37 or tile_id == 49 then
 		return rel_x < 2
 	elseif tile_id == 120 or tile_id == 121 then
-		return rel_y < 2
+		return rel_y < 3
 	elseif tile_id == 110 then
 		return rel_y < 4
 	end
@@ -72,18 +72,16 @@ function collide_map(obj, aim, flag)
 	local y2 = 0
 
 	if aim == "left" then
-		--check multiple pixels ahead for high-speed collision
-		local check_dist = min(abs(obj.dx), 4)  --check up to 4 pixels ahead
+		local check_dist = min(abs(obj.dx), 4)
 		x1 = x - check_dist
 		x2 = x - check_dist
-		y1 = y + 1  --small offset to avoid ceiling collision
+		y1 = y + 1
 		y2 = y + h - 1
 	elseif aim == "right" then
-		--check multiple pixels ahead for high-speed collision
-		local check_dist = min(abs(obj.dx), 4)  --check up to 4 pixels ahead
+		local check_dist = min(abs(obj.dx), 4)
 		x1 = x + w + check_dist - 1
 		x2 = x + w + check_dist - 1
-		y1 = y + 1  --small offset to avoid ceiling collision
+		y1 = y + 1
 		y2 = y + h - 1
 	elseif aim == "up" then
 		x1 = x
@@ -98,8 +96,12 @@ function collide_map(obj, aim, flag)
 	elseif aim == "down" then
 		x1 = x
 		x2 = x + w - 1
+		local check_dist = 1
+		if obj.dy and obj.dy > 0 then
+			check_dist = min(ceil(obj.dy), 6)
+		end
 		y1 = y + h + 1
-		y2 = y + h + 1
+		y2 = y + h + check_dist
 	elseif aim == "slide" then
 		x1 = x
 		x2 = x + w - 1
@@ -107,7 +109,6 @@ function collide_map(obj, aim, flag)
 		y2 = y + h - 1
 	end
 
-	-- pixels to tiles
 	x1 = x1 / 8
 	x2 = x2 / 8
 	y1 = y1 / 8
@@ -150,15 +151,22 @@ function collide_map(obj, aim, flag)
 		if aim == "up" or aim == "down" then
 			local tile_x1 = flr(orig_x1 / 8)
 			local tile_x2 = flr(orig_x2 / 8)
-			local tile_y = flr(orig_y1 / 8)
+			local tile_y1 = flr(orig_y1 / 8)
+			local tile_y2 = flr(orig_y2 / 8)
 
-			for tx = tile_x1, tile_x2 do
-				local tile_id = mget(tx, tile_y)
-				if (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 or tile_id == 48 or tile_id == 49 or tile_id == 110 then
-					--check horizontal span for narrow columns
-					for check_x = orig_x1, orig_x2 do
-						if is_point_in_custom_tile(check_x, orig_y1, tx, tile_y, tile_id) then
-							return true
+			--check all tiles in the range (important for thin platforms when falling)
+			for ty = tile_y1, tile_y2 do
+				for tx = tile_x1, tile_x2 do
+					local tile_id = mget(tx, ty)
+					if (tile_id >= 118 and tile_id <= 121) or tile_id == 36 or tile_id == 37 or tile_id == 48 or tile_id == 49 or tile_id == 110 then
+						--check horizontal span for narrow columns
+						for check_x = orig_x1, orig_x2 do
+							--check each y position in the range
+							for check_y = orig_y1, orig_y2 do
+								if is_point_in_custom_tile(check_x, check_y, tx, ty, tile_id) then
+									return true
+								end
+							end
 						end
 					end
 				end

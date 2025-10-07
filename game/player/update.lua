@@ -34,20 +34,16 @@ function p_update()
                 p.dx = mid(-2.5, p.dx, 2.5)
                 p.dy = mid(0, p.dy, 2.5)
 
-                p.ice_slide_speed = 0
-                p.ice_acc_timer = 0
+                p.ice_slide_speed,p.ice_acc_timer = 0,0
 
                 --only go into lying/smashing state if moving fast enough
-                local total_speed = abs(p.dx) + abs(p.dy)
-                local lying_threshold = 1.8
+                local tot_spd = abs(p.dx) + abs(p.dy)
+                local lie_thresh = 1.8
 
-                if total_speed >= lying_threshold then
-                        p.splat = true
-                        p.slammed = true
+                if tot_spd >= lie_thresh then
+                        p.splat,p.slammed = true,true
                 else
-                        p.splat = false
-                        p.slammed = false
-                        p.falling = true  --gentle falling state instead
+                        p.splat,p.slammed,p.falling = false,false,true
                 end
 
                 p.grounded = false
@@ -73,8 +69,7 @@ function p_update()
                 p.dy = mid(-2.5, p.dy, 2.5)
 
                 --state management for upward diagonals
-                p.ice_slide_speed = 0
-                p.ice_acc_timer = 0
+                p.ice_slide_speed,p.ice_acc_timer = 0,0
 
                 --upward diagonals should NOT automatically cause splat/slam
                 if p.was_on_diagonal then
@@ -113,15 +108,11 @@ function p_update()
         end
 
         if p.dy>=p.max_dy then
-                p.splat=true
-                p.slammed=true
-                p.landing=false
+                p.splat,p.slammed,p.landing=true,true,false
         end
     
         if p.dy>0 then
-                p.falling=true
-                p.grounded=false
-                p.jumping=false
+                p.falling,p.grounded,p.jumping=true,false,false
                 if not p.slammed and p.dy>1 then
                         p.landing=true
                 end
@@ -292,13 +283,9 @@ function p_update()
         end
 
         --limit movement per frame to prevent collision skipping
-        local collision_safe_limit = 7.5
-        if abs(p.dx) > collision_safe_limit then
-            p.dx = sgn(p.dx) * collision_safe_limit
-        end
-        if abs(p.dy) > collision_safe_limit then
-            p.dy = sgn(p.dy) * collision_safe_limit
-        end
+        local lim = 7.5
+        if abs(p.dx) > lim then p.dx = sgn(p.dx) * lim end
+        if abs(p.dy) > lim then p.dy = sgn(p.dy) * lim end
 
         p.x=p.x+p.dx
         p.y=p.y+p.dy

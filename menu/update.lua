@@ -9,7 +9,7 @@ function update_menu()
     
     local menu_actions = {
         function()
-            if btnp(🅾️) then
+            if btnp(❎) then
                 set_lvl()
                 frames = 0
                 seconds = 0
@@ -29,18 +29,18 @@ function update_menu()
             end
         end,
         function() 
-            if btnp(⬅️) or btnp(➡️) or btnp(🅾️) then
+            if btnp(⬅️) or btnp(➡️) or btnp(❎) then
                 game_music = not game_music
                 if game_music then menu_music = true end
             end
         end,
-        function() if btnp(⬅️) or btnp(➡️) or btnp(🅾️) then show_time = not show_time end end,
+        function() if btnp(⬅️) or btnp(➡️) or btnp(❎) then show_time = not show_time end end,
         function()
             if not debug then return end
-            if btnp(➡️) or btnp(🅾️) then
+            if btnp(➡️) or btnp(❎) then
                 init_lvl = init_lvl < 32 and init_lvl + 1 or 1
                 set_lvl()
-            elseif btnp(⬅️) or btnp(❎) then
+            elseif btnp(⬅️) or btnp(🅾️) then
                 init_lvl = init_lvl > 1 and init_lvl - 1 or 32
                 set_lvl()
             end

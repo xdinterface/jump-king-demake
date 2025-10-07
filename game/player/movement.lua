@@ -8,7 +8,43 @@ function reset_all_momentum()
     p.air_moved = false
 end
 
+function reset_player_state()
+    p.dx = 0
+    p.dy = 0
+    p.ice_slide_speed = 0
+    p.ice_acc_timer = 0
+    p.running = false
+    p.dir = false
+    p.air_moved = false
+    p.grounded = false
+    p.crouching = false
+    p.jumping = false
+    p.falling = true
+    p.splat = false
+    p.landing = false
+    p.slammed = false
+    p.hit = false
+    p.boost = 0
+    p.wind_timer = 0
+    p.wind_ramp = 0
+    p.ground_wind_timer = 0
+    p.ground_wind_ramp = 0
+end
+
 function p_movement()
+    -- O button: long press saves, short press restores
+    if btn(🅾️) then
+        if not o_button_held then o_button_press_time,o_button_held = time(),true
+        elseif time()-o_button_press_time > 0.5 and not position_saved then
+            saved_pos_x,saved_pos_y,position_saved = p.x,p.y,true
+        end
+    elseif o_button_held then
+        if time()-o_button_press_time <= 0.5 and saved_pos_x then
+            p.x,p.y = saved_pos_x,saved_pos_y reset_player_state()
+        end
+        o_button_held,position_saved = false,false
+    end
+
     local wind_force = 0
     local has_snow_wind = has_wind_this_level
 
@@ -85,10 +121,10 @@ function p_movement()
         end
     end
 
-    p.jump_btn_held = btn(🅾️)
+    p.jump_btn_held = btn(❎)
 
     --crouch (can't while splat)
-    if btn(🅾️)
+    if btn(❎)
     and p.grounded
     and not p.lock_jump
     and not p.splat then
@@ -137,12 +173,12 @@ function p_movement()
         end
     end
 
-    if btnp(🅾️)
+    if btnp(❎)
     and p.grounded then
         p.lock_jump = false
     end
 
-    if not btn(🅾️)
+    if not btn(❎)
     and p.crouching then
         sfx(0)
         air_time=0
