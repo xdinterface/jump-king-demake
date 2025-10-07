@@ -175,25 +175,41 @@ function _init()
     --background progress tracking
     min_tile_y_reached = nil  -- tracks highest point reached (lowest y value)
 
-    world_bg_zones = {
-        {tile_x = 31, tile_y = 51, bg_color = 13, cloud_color = 6},   -- forest
-        {tile_x = 31, tile_y = 3, bg_color = 0, cloud_color = nil},   -- sewers
-        {tile_x = 47, tile_y = 18, bg_color = 2, cloud_color = 6},    -- mansions
-        {tile_x = 63, tile_y = 17, bg_color = 6, cloud_color = 7},    -- town
-        {tile_x = 79, tile_y = 17, bg_color = 13, cloud_color = 13},  -- guard posts
-        {tile_x = 95, tile_y = 0, bg_color = 1, cloud_color = 13},    -- snow
-        {tile_x = 111, tile_y = 16, bg_color = 13, cloud_color = nil}, -- church
-        {tile_x = 127, tile_y = 47, bg_color = 1, cloud_color = nil},  -- iceland
-        {tile_x = 127, tile_y = 0, bg_color = 15, cloud_color = 9}     -- tower
-    }
+    --level-based background colors
+    level_bg = {}
+    for i=1,5 do level_bg[i] = 13 end     --forest
+    for i=6,7 do level_bg[i] = 0 end      --sewers
+    for i=8,11 do level_bg[i] = 2 end     --mansion
+    for i=12,15 do level_bg[i] = 6 end    --town
+    for i=16,19 do level_bg[i] = 13 end   --guard posts
+    for i=20,24 do level_bg[i] = 1 end    --snow
+    for i=25,26 do level_bg[i] = 13 end   --chapel
+    for i=27,30 do level_bg[i] = 1 end    --iceland
+    for i=31,32 do level_bg[i] = 15 end   --tower
 
-    mansion_overlays = {
+    --level-based cloud colors (nil = no clouds)
+    level_clouds = {}
+    for i=1,5 do level_clouds[i] = 6 end      --forest: dark gray
+    for i=6,7 do level_clouds[i] = nil end    --sewers: no clouds
+    for i=8,11 do level_clouds[i] = 6 end     --mansion: dark gray
+    for i=12,15 do level_clouds[i] = 7 end    --town: light gray
+    for i=16,19 do level_clouds[i] = 13 end   --guard: white
+    for i=20,24 do level_clouds[i] = 13 end   --snow: white
+    for i=25,26 do level_clouds[i] = nil end  --chapel: no clouds
+    for i=27,30 do level_clouds[i] = nil end  --iceland: no clouds
+    for i=31,32 do level_clouds[i] = 9 end    --tower: orange
+
+    --custom background rectangles
+    custom_bg_rects = {
+        --sewers (x016 y050 to x031 y005)
+        {x_start = 16, y_start = 50, x_end = 31, y_end = 5, bg_color = 0},
+        --mansion overlays (keeping existing ones)
         {x_start = 37, y_start = 62, x_end = 47, y_end = 37, bg_color = 5},
         {x_start = 40, y_start = 36, x_end = 47, y_end = 23, bg_color = 5},
-        {x_start = 38, y_start = 37, x_end = 47, y_end = 36, bg_color = 5}
+        {x_start = 38, y_start = 37, x_end = 47, y_end = 36, bg_color = 5},
+        --chapel (x094 y027 to x107 y028)
+        {x_start = 94, y_start = 27, x_end = 107, y_end = 28, bg_color = 13}
     }
-
-    custom_bg_rects = {}
 
 
     --ending state variables
@@ -231,16 +247,6 @@ function _init()
     transition_princess_x = 0
     transition_princess_y = 0
 
-    custom_bg_rects = generate_bg_rectangles()
-
-    --background to cloud color mapping
-    bg_to_cloud = {}
-    bg_to_cloud[0] = nil  --sewers: no clouds
-    bg_to_cloud[1] = 13   --snow/iceland: white clouds
-    bg_to_cloud[2] = 6    --mansions: dark gray
-    bg_to_cloud[6] = 7    --town: light gray
-    bg_to_cloud[13] = 6   --forest/guard/church: dark gray
-    bg_to_cloud[15] = 9   --tower: orange
 end
 
 function reset_clouds()
@@ -259,47 +265,6 @@ function reset_clouds()
             h=h
         }
     end
-end
-
-
-function generate_bg_rectangles()
-    local rects = {}
-    local col_filled = {}
-    for i = 0, 7 do
-        col_filled[i] = 64
-    end
-
-    for i = 1, #world_bg_zones do
-        local zone = world_bg_zones[i]
-        local target_x = zone.tile_x
-        local target_y = zone.tile_y
-        local bg_color = zone.bg_color
-        local target_col = flr(target_x / 16)
-
-        for col = 0, target_col do
-            local col_start_x = col * 16
-            local col_end_x = (col == target_col) and target_x or ((col + 1) * 16 - 1)
-            local y_start = (col_filled[col] == 64) and 64 or col_filled[col]
-            local y_end = (col == target_col) and target_y or 0
-
-            if y_start >= y_end then
-                add(rects, {
-                    x_start = col_start_x,
-                    y_start = y_start,
-                    x_end = col_end_x + 1,
-                    y_end = y_end,
-                    bg_color = bg_color
-                })
-                col_filled[col] = y_end
-            end
-        end
-    end
-
-    for i = 1, #mansion_overlays do
-        add(rects, mansion_overlays[i])
-    end
-
-    return rects
 end
 
 function in_levels(lvl, list)
