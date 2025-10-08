@@ -5,8 +5,7 @@ function update_ending_transition()
   princess_sprite=princess_sprite==12 and 13 or 12
  end
  if t>6 then
-  _update=update_ending
-  _draw=draw_ending
+  _update, _draw = update_ending, draw_ending
  end
 end
 
@@ -21,13 +20,10 @@ function draw_ending_transition()
   camera(0,0)
  end
 
- local px=p.x+(54-p.x)*t
- local py=p.y+(60-p.y)*t
- local prx=princess_x+(74-princess_x)*t
- local pry=princess_y+(60-princess_y)*t
+ local px, py = p.x+(54-p.x)*t, p.y+(60-p.y)*t
+ local prx, pry = princess_x+(74-princess_x)*t, princess_y+(60-princess_y)*t
 
- palt(14,true)
- palt(0,false)
+ palt(14,true) palt(0,false)
  spr(p.sp,px,py,1,1,p.flp)
  spr(15,px,py-1,1,1,p.flp)
  spr(princess_sprite,prx,pry)
