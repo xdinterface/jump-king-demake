@@ -1,10 +1,10 @@
 function update_ending()
     ending_timer = ending_timer + 1
-    local phase_time = ending_timer / 30
+    local phase_time = ending_timer / 60
 
 
     if ending_timer == 1 then
-        local current_total = frames + (seconds * 30) + (minutes * 1800) + (hours * 108000)
+        local current_total = frames + (seconds * 60) + (minutes * 3600) + (hours * 216000)
         if best_time == 0 or current_total < best_time then
             is_new_record = true
             best_time = current_total
@@ -23,7 +23,7 @@ function update_ending()
         phase_progress = phase_time - 8
         if btnp(⬅️) or btnp(➡️) or btnp(⬆️) or btnp(⬇️) or btnp(🅾️) or btnp(❎) then
             reset_game_state()
-            _update, _draw = update_menu, draw_menu
+            _update60, _draw = update_menu, draw_menu
         end
     end
 end

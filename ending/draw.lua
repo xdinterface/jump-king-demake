@@ -77,13 +77,13 @@ function print_centered(text, y, col)
 end
 
 function format_time_with_ms()
-    local total_frames = frames + (seconds * 30) + (minutes * 1800) + (hours * 108000)
+    local total_frames = frames + (seconds * 60) + (minutes * 3600) + (hours * 216000)
     return format_frames_to_time(total_frames)
 end
 
 function format_frames_to_time(total_frames)
-    local ms = flr((total_frames % 30) * 33.33)
-    local total_seconds = flr(total_frames / 30)
+    local ms = flr((total_frames % 60) * 16.67)
+    local total_seconds = flr(total_frames / 60)
     local h, m, s = flr(total_seconds / 3600), flr((total_seconds % 3600) / 60), total_seconds % 60
 
     local function pad(x) return x < 10 and "0" .. x or tostr(x) end

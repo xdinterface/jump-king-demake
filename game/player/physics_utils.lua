@@ -7,7 +7,7 @@ function stop_running()
 		if on_ice(p) and abs(p.ice_slide_speed) > ice_thresh then
 			p.dx = p.ice_slide_speed
 		else
-			p.dx = p.dx * friction
+			p.dx = p.dx * (1 - friction)
 			local gwforce = calc_gwforce()
 			p.dx = p.dx + gwforce
 		end

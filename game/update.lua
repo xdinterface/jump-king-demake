@@ -2,7 +2,7 @@ function update_game()
 
 	if check_victory() then
 		timer_stopped = true
-		_update = update_ending_transition
+		_update60 = update_ending_transition
 		_draw = draw_ending_transition
 		return
 	end
@@ -26,7 +26,7 @@ function update_game()
 	local px_tile = flr(p.x / 8)
 	if px_tile >= 118 and px_tile <= 127 and p.y < 100 then
 		princess_anim_timer = princess_anim_timer + 1
-		if princess_anim_timer >= 15 then
+		if princess_anim_timer >= 30 then
 			princess_anim_timer = 0
 			princess_sprite = princess_sprite == 12 and 13 or 12
 		end

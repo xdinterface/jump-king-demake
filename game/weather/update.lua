@@ -55,9 +55,9 @@ function update_snow_wind()
         end
 
         if apply_wind then
+            local t = wind_timer / wind_ramp_time
             wind_strength = (wind_phase == 1 or wind_phase == 4) and 1 or
-                          (wind_phase == 0 or wind_phase == 3) and wind_timer / wind_ramp_time or
-                          1 - (wind_timer / wind_ramp_time)
+                          (wind_phase == 0 or wind_phase == 3) and t or 1 - t
         end
     end
     
@@ -71,7 +71,6 @@ function update_snow_wind()
         if flake.y > screen_size then
             flake.y, flake.x = -8, rnd(screen_size)
         end
-        if flake.x < 0 then flake.x = screen_size
-        elseif flake.x > screen_size then flake.x = 0 end
+        flake.x = flake.x < 0 and screen_size or (flake.x > screen_size and 0 or flake.x)
     end)
 end

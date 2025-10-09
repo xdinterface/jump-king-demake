@@ -1,39 +1,22 @@
 function reset_all_momentum()
-    p.dx = 0
-    p.dy = 0
-    p.ice_slide_speed = 0
-    p.ice_acc_timer = 0
-    p.running = false
-    p.dir = false
-    p.air_moved = false
+    p.dx,p.dy,p.ice_slide_speed,p.ice_acc_timer = 0,0,0,0
+    p.running,p.dir,p.air_moved = false,false,false
 end
 
 function reset_player_state()
-    p.dx = 0
-    p.dy = 0
-    p.ice_slide_speed = 0
-    p.ice_acc_timer = 0
-    p.running = false
-    p.dir = false
-    p.air_moved = false
-    p.grounded = false
-    p.crouching = false
-    p.jumping = false
+    p.dx,p.dy,p.ice_slide_speed,p.ice_acc_timer = 0,0,0,0
+    p.boost,p.wind_timer,p.wind_ramp = 0,0,0
+    p.ground_wind_timer,p.ground_wind_ramp = 0,0
+    p.running,p.dir,p.air_moved,p.grounded = false,false,false,false
+    p.crouching,p.jumping,p.splat = false,false,false
+    p.landing,p.slammed,p.hit = false,false,false
     p.falling = true
-    p.splat = false
-    p.landing = false
-    p.slammed = false
-    p.hit = false
-    p.boost = 0
-    p.wind_timer = 0
-    p.wind_ramp = 0
-    p.ground_wind_timer = 0
-    p.ground_wind_ramp = 0
 end
 
 function p_movement()
 
-    if btn(🅾️) then
+    local o_btn = btn(🅾️)
+    if o_btn then
         if not o_button_held then o_button_press_time,o_button_held = time(),true
         elseif time()-o_button_press_time > 0.5 and not position_saved then
             saved_pos_x,saved_pos_y,position_saved = p.x,p.y,true
@@ -50,14 +33,14 @@ function p_movement()
 
     if has_snow_wind then
         if not p.grounded then
-            p.wind_timer, p.wind_ramp = update_ramp(p.wind_timer, wind_ramp_time)
-            p.ground_wind_timer, p.ground_wind_ramp = 0, 0
+            p.wind_timer,p.wind_ramp = update_ramp(p.wind_timer, wind_ramp_time)
+            p.ground_wind_timer,p.ground_wind_ramp = 0,0
         else
-            p.wind_timer, p.wind_ramp = 0, 0
+            p.wind_timer,p.wind_ramp = 0,0
             if not in_deep_snow(p) then
-                p.ground_wind_timer, p.ground_wind_ramp = update_ramp(p.ground_wind_timer, wind_ramp_time)
+                p.ground_wind_timer,p.ground_wind_ramp = update_ramp(p.ground_wind_timer, wind_ramp_time)
             else
-                p.ground_wind_timer, p.ground_wind_ramp = 0, 0
+                p.ground_wind_timer,p.ground_wind_ramp = 0,0
             end
         end
 
@@ -67,7 +50,7 @@ function p_movement()
     local is_on_ice = on_ice(p)
     p.ice_sliding = is_on_ice and abs(p.ice_slide_speed) > ice_thresh
 
-    local left, right = btn(⬅️), btn(➡️)
+    local left,right = btn(⬅️),btn(➡️)
     local move_dir = (right and 1 or 0) - (left and 1 or 0)
     if move_dir != 0 and p.grounded then
         if move_dir < 0 then p.flp = true
@@ -85,14 +68,14 @@ function p_movement()
                     if p.ice_acc_timer == 0 then
                         p.ice_acc_timer = 0.2
                     end
-                    p.ice_acc_timer = min(p.ice_acc_timer + 1/15, 1)
+                    p.ice_acc_timer = min(p.ice_acc_timer + 1/60, 1)
                     local ice_acc = ice_ramp * p.ice_acc_timer
                     p.dx = p.dx + move_dir * ice_acc
                     p.dx = mid(-p.max_dx, p.dx, p.max_dx)
                     p.ice_slide_speed = p.dx
                 end
             else
-                p.dx = p.dx + move_dir * p.move_acc
+                p.dx = move_dir * p.max_walk_dx
             end
             p.running = true
         else
@@ -108,16 +91,17 @@ function p_movement()
         end
     end
 
-    p.jump_btn_held = btn(❎)
+    local jump_btn = btn(❎)
+    p.jump_btn_held = jump_btn
 
 
-    if p.splat and p.grounded and (left or right or btn(❎) or btn(🅾️)) then
+    if p.splat and p.grounded and (left or right or jump_btn or o_btn) then
         p.splat = false
         p.sp = 1
     end
 
 
-    if btn(❎)
+    if jump_btn
     and p.grounded
     and not p.lock_jump
     and not p.splat then
@@ -130,11 +114,15 @@ function p_movement()
         if time()-air_time > charge_rate then
             air_time = time()
             if p.boost < p.boost_max then
-                p.boost=p.boost+0.4
+                p.boost=p.boost+0.105
             end
         end
 
         p.boost = min(p.boost, p.boost_max)
+
+        if p.boost >= p.min_charge_threshold then
+            p.min_charge_met = true
+        end
 
         if not left and not right then
                 p.dir=false
@@ -148,16 +136,30 @@ function p_movement()
     if btnp(❎)
     and p.grounded then
         p.lock_jump = false
+        p.min_charge_met = false
     end
 
-    if not btn(❎)
-    and p.crouching then
-        execute_jump(move_dir, is_on_ice)
+    if not jump_btn and p.crouching then
+        if p.min_charge_met then
+            execute_jump(move_dir, is_on_ice)
+        else
+            if time()-air_time > charge_rate then
+                air_time = time()
+                if p.boost < p.boost_max then
+                    p.boost=p.boost+0.105
+                end
+            end
+            p.boost = min(p.boost, p.boost_max)
+            if p.boost >= p.min_charge_threshold then
+                p.min_charge_met = true
+                execute_jump(move_dir, is_on_ice)
+            end
+        end
     end
 
 
     if not p.grounded and p.dir and not p.air_moved then
-        local slide1, slide2 = collide_map(p, "slide", 1), collide_map(p, "slide", 2)
+        local slide1,slide2 = collide_map(p,"slide",1),collide_map(p,"slide",2)
         if not slide1 and not slide2 then
             local air_dir = p.flp and -1 or 1
 
@@ -166,26 +168,15 @@ function p_movement()
                 if sgn(air_dir) != sgn(p.ice_slide_speed) then
 
                     local reduction = abs(p.ice_slide_speed) * 0.5
-                    if p.splat or p.running then
-                        p.dx = p.dx + air_dir * max(p.acc - reduction, p.acc * 0.3)
-                    else
-                        p.dx = p.dx + air_dir * max(p.jump_acc - reduction, p.jump_acc * 0.3)
-                    end
+                    local acc = (p.splat or p.running) and p.acc or p.jump_acc
+                    p.dx = p.dx + air_dir * max(acc - reduction, acc * 0.3)
                 else
 
-                    if p.splat or p.running then
-                        p.dx = p.dx + air_dir * p.acc
-                    else
-                        p.dx = p.dx + air_dir * p.jump_acc
-                    end
+                    p.dx = p.dx + air_dir * ((p.splat or p.running) and p.acc or p.jump_acc)
                 end
             else
 
-                if p.splat or p.running then
-                    p.dx = p.dx + air_dir * p.acc
-                else
-                    p.dx = p.dx + air_dir * p.jump_acc
-                end
+                p.dx = p.dx + air_dir * ((p.splat or p.running) and p.acc or p.jump_acc)
             end
             p.air_moved = true
         elseif slide1 or slide2 then
@@ -194,7 +185,7 @@ function p_movement()
 
 
             p.dx = slide_dir * abs(p.dy)
-            p.splat, p.slammed, p.landing = true, true, false
+            p.slammed,p.landing = true,false
             p.air_moved = true
         end
     end
@@ -208,12 +199,7 @@ function p_movement()
         local ground_wind_force = wind_direction * wind_strength * p.ground_wind_ramp * wind_ground_force
 
 
-        local blocked_by_wall = false
-        if wind_direction < 0 and collide_map(p, "left", 0) then
-            blocked_by_wall = true
-        elseif wind_direction > 0 and collide_map(p, "right", 0) then
-            blocked_by_wall = true
-        end
+        local blocked_by_wall = (wind_direction < 0 and collide_map(p,"left",0)) or (wind_direction > 0 and collide_map(p,"right",0))
 
         if not blocked_by_wall then
             p.dx = p.dx + ground_wind_force
@@ -226,8 +212,7 @@ end
 function update_ice_decel(rate)
     p.ice_slide_speed = p.ice_slide_speed - sgn(p.ice_slide_speed) * rate
     if abs(p.ice_slide_speed) < ice_thresh then
-        p.ice_slide_speed = 0
-        p.ice_acc_timer = 0
+        p.ice_slide_speed,p.ice_acc_timer = 0,0
     end
     p.dx = p.ice_slide_speed
 end
@@ -235,14 +220,12 @@ end
 function execute_jump(move_dir, is_on_ice)
     sfx(0)
     air_time=0
-    p.dy=p.dy-(p.boost+0.8)
+    p.dy=p.dy-p.boost
     p.boost=0
     p.landing,p.jumping,p.grounded,p.crouching,p.running=true,true,false,false,false
     jump_counter=jump_counter+1
 
-    if move_dir < 0 then p.flp = true
-    elseif move_dir > 0 then p.flp = false
-    end
+    if move_dir != 0 then p.flp = move_dir < 0 end
 
     if is_on_ice and abs(p.ice_slide_speed) > ice_thresh then
         p.dx = p.ice_slide_speed

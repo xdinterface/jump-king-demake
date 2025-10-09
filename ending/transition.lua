@@ -1,16 +1,16 @@
 function update_ending_transition()
  ending_transition_timer+=1
- local t=ending_transition_timer/30
- if ending_transition_timer%15==0 then
+ local t=ending_transition_timer/60
+ if ending_transition_timer%30==0 then
   princess_sprite=princess_sprite==12 and 13 or 12
  end
  if t>6 then
-  _update, _draw = update_ending, draw_ending
+  _update60, _draw = update_ending, draw_ending
  end
 end
 
 function draw_ending_transition()
- local t=min(ending_transition_timer/60,1)
+ local t=min(ending_transition_timer/120,1)
  camera(0,0)
  cls(15)
 

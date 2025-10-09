@@ -20,7 +20,7 @@ function update_menu()
                 current_level_column = flr(p.x / 128)
                 cam_x, cam_y = current_level_column * 128, flr(p.y / 128) * 128
                 camera(cam_x, cam_y)
-                _update, _draw = update_game, draw_game
+                _update60, _draw = update_game, draw_game
             end
         end,
         function()

@@ -1,6 +1,6 @@
 function _init()
 
-	_update = update_title
+	_update60 = update_title
 	_draw = draw_title
 
 
@@ -14,21 +14,22 @@ function _init()
 	is_new_record = false
 
 
-	gravity = 0.24
-	friction = 0.2
-	ice_decel = 0.1
+	gravity = 0.12
+	friction = 0.8
+	movement_speed = 0.7
+	ice_decel = 0.16
 	ice_counter = 0.16
-	ice_ramp = 0.24
+	ice_ramp = 0.12
 	ice_thresh = 0.08
-	charge_rate = 0.07
+	charge_rate = 0.01
 	anim_rate = 0.1
 	bounce_factor = 0.6
 	slam_thresh = 5.2
 
 
 	snow_count = 60
-	snow_spd_min = 0.5
-	snow_spd_max = 1.0
+	snow_spd_min = 0.25
+	snow_spd_max = 0.5
 	snow_wind_factor = 4.0
 	wind_max = 1.5
 	wind_player_force = 0.08
@@ -39,8 +40,8 @@ function _init()
 
 
 	cloud_count = 8
-	cloud_spd_min = 0.04
-	cloud_spd_max = 0.2
+	cloud_spd_min = 0.02
+	cloud_spd_max = 0.1
 	cloud_size_min = 32
 	cloud_size_max = 64
 
@@ -59,7 +60,7 @@ function _init()
 	end
 
 
-	fps = 30
+	fps = 60
 	world_size = 1024
 	screen_size = 128
 
@@ -77,15 +78,14 @@ function _init()
 		flp = false,
 		dx = 0,
 		dy = 0,
-		max_walk_dx = 1.4,
+		max_walk_dx = 0.45,
 		max_dx = 2,
 		max_dy = 5.7,
 		max_slide = 2.5,
-		acc = 1.4,
-		move_acc = 0.3,
-		jump_acc = 1.9,
+		acc = 0.7,
+		jump_acc = 1.6,
 		boost = 0,
-		boost_max = 4.0,
+		boost_max = 4.2,
 		anim = 0,
 		grounded = false,
 		running = false,
@@ -110,6 +110,8 @@ function _init()
 		was_on_diagonal = false,
 		diagonal_started = false,
 		jump_btn_held = false,
+		min_charge_met = false,
+		min_charge_threshold = 0.63,
 	}
 
 
@@ -117,7 +119,7 @@ function _init()
 
 	menu_pos = 1
 	blink_c, blink_c1, blink_c2 = 7, 7, 6
-	blink_rate, blink_speed = 0, 5
+	blink_rate, blink_speed = 0, 10
 
 	frames, seconds, minutes, hours = 0, 0, 0, 0
 
@@ -154,7 +156,7 @@ function _init()
 		rain[i] = {
 			x = rnd(screen_size),
 			y = rnd(screen_size),
-			spd = 2.5 + rnd(1.5),
+			spd = 1.25 + rnd(0.75),
 		}
 	end
 
