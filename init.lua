@@ -16,7 +16,7 @@ function _init()
 
 	gravity = 0.12
 	friction = 0.8
-	movement_speed = 0.7
+	movement_speed = 0.6
 	ice_decel = 0.16
 	ice_counter = 0.16
 	ice_ramp = 0.12
@@ -78,14 +78,14 @@ function _init()
 		flp = false,
 		dx = 0,
 		dy = 0,
-		max_walk_dx = 0.45,
+		max_walk_dx = 0.6,
 		max_dx = 2,
 		max_dy = 5.7,
 		max_slide = 2.5,
 		acc = 0.7,
-		jump_acc = 1.6,
+		jump_acc = 1.8,
 		boost = 0,
-		boost_max = 4.2,
+		boost_max = 4.4,
 		anim = 0,
 		grounded = false,
 		running = false,

@@ -114,7 +114,7 @@ function p_movement()
         if time()-air_time > charge_rate then
             air_time = time()
             if p.boost < p.boost_max then
-                p.boost=p.boost+0.105
+                p.boost=p.boost+0.11
             end
         end
 
@@ -146,7 +146,7 @@ function p_movement()
             if time()-air_time > charge_rate then
                 air_time = time()
                 if p.boost < p.boost_max then
-                    p.boost=p.boost+0.105
+                    p.boost=p.boost+0.11
                 end
             end
             p.boost = min(p.boost, p.boost_max)
