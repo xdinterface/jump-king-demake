@@ -34,11 +34,10 @@ function collide_map_diag(obj, aim, flag)
 
 			local blocked_by_diagonal = false
 
-			if fget(diagonal_tile, 1) or fget(diagonal_tile, 2) then
-				local rel_x = check_x % 8
-				local rel_y = (y + h) % 8
+			if fget(diagonal_tile, 1) or fget(diagonal_tile, 2) or fget(diagonal_tile, 3) or fget(diagonal_tile, 4) then
+				local flag = fget(diagonal_tile, 1) and 1 or (fget(diagonal_tile, 2) and 2 or (fget(diagonal_tile, 3) and 3 or 4))
 
-				if on_diagonal_slope(check_x, y + h, tile_x, player_tile_y, fget(diagonal_tile, 1) and 1 or 2) then
+				if on_diagonal_slope(check_x, y + h, tile_x, player_tile_y, flag) then
 					blocked_by_diagonal = true
 				end
 			end
